@@ -1,26 +1,425 @@
+/* globals.css - Next.js + Tailwind CSS v4 avec Dark/Light Mode */
+
+/* Import Tailwind CSS v4 */
 @import "tailwindcss";
 
+/* ===========================================
+   VARIABLES CSS CUSTOM - DESIGN SYSTEM
+   =========================================== */
+
+@theme {
+  /* Couleurs principales e-commerce */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+
+  /* Couleurs success (commandes validées) */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  /* Couleurs warning (stock faible) */
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+
+  /* Couleurs error (erreurs, suppression) */
+  --color-error-50: #fef2f2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+
+  /* Couleurs neutres */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Border radius responsive */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  /* Espacements e-commerce */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-2xl: 4rem;
+
+  /* Fonts */
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* ===========================================
+   VARIABLES LIGHT MODE (par défaut)
+   =========================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --color-background: #ffffff;
+  --color-background-secondary: var(--color-gray-50);
+  --color-background-muted: var(--color-gray-100);
+  
+  /* Text */
+  --color-foreground: var(--color-gray-900);
+  --color-foreground-muted: var(--color-gray-600);
+  --color-foreground-subtle: var(--color-gray-500);
+  
+  /* Borders */
+  --color-border: var(--color-gray-200);
+  --color-border-muted: var(--color-gray-100);
+  
+  /* Cards */
+  --color-card: #ffffff;
+  --color-card-border: var(--color-gray-200);
+  
+  /* Inputs */
+  --color-input: #ffffff;
+  --color-input-border: var(--color-gray-300);
+  --color-input-focus: var(--color-primary-500);
+  
+  /* Buttons */
+  --color-button-primary: var(--color-primary-600);
+  --color-button-primary-hover: var(--color-primary-700);
+  --color-button-primary-text: #ffffff;
+  
+  --color-button-secondary: var(--color-gray-100);
+  --color-button-secondary-hover: var(--color-gray-200);
+  --color-button-secondary-text: var(--color-gray-900);
+  
+  /* E-commerce spécifique */
+  --color-price: var(--color-primary-600);
+  --color-price-discount: var(--color-error-500);
+  --color-rating: var(--color-warning-500);
+  --color-stock-available: var(--color-success-600);
+  --color-stock-low: var(--color-warning-600);
+  --color-stock-out: var(--color-error-500);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ===========================================
+   VARIABLES DARK MODE
+   =========================================== */
+
+:root.dark {
+  /* Backgrounds */
+  --color-background: var(--color-gray-950);
+  --color-background-secondary: var(--color-gray-900);
+  --color-background-muted: var(--color-gray-800);
+  
+  /* Text */
+  --color-foreground: var(--color-gray-50);
+  --color-foreground-muted: var(--color-gray-300);
+  --color-foreground-subtle: var(--color-gray-400);
+  
+  /* Borders */
+  --color-border: var(--color-gray-700);
+  --color-border-muted: var(--color-gray-800);
+  
+  /* Cards */
+  --color-card: var(--color-gray-900);
+  --color-card-border: var(--color-gray-700);
+  
+  /* Inputs */
+  --color-input: var(--color-gray-800);
+  --color-input-border: var(--color-gray-600);
+  --color-input-focus: var(--color-primary-400);
+  
+  /* Buttons */
+  --color-button-primary: var(--color-primary-500);
+  --color-button-primary-hover: var(--color-primary-600);
+  --color-button-primary-text: #ffffff;
+  
+  --color-button-secondary: var(--color-gray-700);
+  --color-button-secondary-hover: var(--color-gray-600);
+  --color-button-secondary-text: var(--color-gray-100);
+  
+  /* E-commerce spécifique */
+  --color-price: var(--color-primary-400);
+  --color-price-discount: var(--color-error-400);
+  --color-rating: var(--color-warning-400);
+  --color-stock-available: var(--color-success-400);
+  --color-stock-low: var(--color-warning-400);
+  --color-stock-out: var(--color-error-400);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===========================================
+   BASE STYLES
+   =========================================== */
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  tab-size: 4;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* ===========================================
+   CUSTOM UTILITY CLASSES E-COMMERCE
+   =========================================== */
+
+/* Container responsive avec padding mobile-first */
+.container-custom {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem; /* Mobile: 16px */
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-custom {
+    padding-left: 1.5rem; /* Tablet: 24px */
+    padding-right: 1.5rem;
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-custom {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-custom {
+    padding-left: 2rem; /* Desktop: 32px */
+    padding-right: 2rem;
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-custom {
+    max-width: 1280px;
+  }
+}
+
+/* Glassmorphism effet pour les cartes premium */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+:root.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation fade-in pour les produits qui se chargent */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effect pour les cartes produits */
+.product-card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.product-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Badge styles pour les promotions */
+.badge-promo {
+  background: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-md);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Prix barrés */
+.price-crossed {
+  position: relative;
+}
+
+.price-crossed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: rotate(-5deg);
+}
+
+/* Loading skeleton pour les cartes produits */
+.skeleton {
+  background: linear-gradient(90deg, 
+    var(--color-background-muted) 25%, 
+    var(--color-background-secondary) 50%, 
+    var(--color-background-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===========================================
+   SCROLLBAR CUSTOM (DARK/LIGHT)
+   =========================================== */
+
+/* Webkit scrollbar (Chrome, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-foreground-muted);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-background-muted);
+}
+
+/* ===========================================
+   PRINT STYLES (pour les factures)
+   =========================================== */
+
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ===========================================
+   FOCUS STYLES (ACCESSIBILITÉ)
+   =========================================== */
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-input-focus);
+  outline-offset: 2px;
+}
+
+/* ===========================================
+   MOBILE OPTIMIZATIONS
+   =========================================== */
+
+/* Désactiver le zoom sur les inputs (iOS) */
+@media (max-width: 639px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px; /* Évite le zoom automatique sur iOS */
+  }
+}
+
+/* Touch targets minimum 44px (Guidelines mobiles) */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ===========================================
+   REDUCED MOTION (ACCESSIBILITÉ)
+   =========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
