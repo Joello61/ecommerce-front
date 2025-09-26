@@ -173,7 +173,7 @@ export interface ButtonProps
 }
 
 // ===========================================
-// BUTTON COMPONENT
+// BUTTON COMPONENT - SOLUTION CORRIGÉE
 // ===========================================
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -194,12 +194,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const Comp = asChild ? Slot : 'button'
-    
     const isDisabled = disabled || loading
-    
+
+    // Si asChild est true, on retourne un Slot simple avec un seul enfant
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(
+            buttonVariants({ variant, size, fullWidth, loading: false, className })
+          )}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      )
+    }
+
+    // Comportement normal du button avec tous les features
     return (
-      <Comp
+      <button
         className={cn(
           buttonVariants({ variant, size, fullWidth, loading, className })
         )}
@@ -230,7 +244,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {endIcon}
           </span>
         )}
-      </Comp>
+      </button>
     )
   }
 )
