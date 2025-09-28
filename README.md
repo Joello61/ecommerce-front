@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-commerce Frontend
 
-## Getting Started
+Application e-commerce moderne développée avec Next.js 15.5, TypeScript 5.9 et Tailwind CSS v4.
 
-First, run the development server:
+## 🛠️ Stack technique
 
+- **Framework**: Next.js 15.5 (App Router)
+- **Langage**: TypeScript 5.9 (mode strict)
+- **Styling**: Tailwind CSS v4
+- **État**: Zustand
+- **Requêtes**: TanStack Query
+- **Validation**: Zod + React Hook Form
+- **UI**: Radix UI + Lucide React
+
+## 🚀 Démarrage rapide
 ```bash
+# Installation des dépendances
+npm install
+
+# Développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build de production
+npm run build
+
+# Linting
+npm run lint
+
+# Formatage du code
+npm run format
+```
+## 📁 Structure du projet
+
+```
+src/
+├── app/         # Pages et layouts (App Router)
+├── components/  # Composants réutilisables
+├── lib/         # Utilitaires et configurations
+├── store/       # Gestion d'état
+├── types/       # Types TypeScript
+└── hooks/       # Hooks personnalisés
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Copier .env.example vers .env.local
+- Configurer les variables d'environnement
+- Installer les dépendances avec npm install
+- Lancer le serveur de développement avec npm run dev
