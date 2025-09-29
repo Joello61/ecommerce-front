@@ -1,6 +1,3 @@
-import { Product } from "./product";
-import { User } from "./user";
-
 export type OrderStatus = 
   | 'pending'
   | 'confirmed'
@@ -14,80 +11,108 @@ export interface Order {
   orderNumber: string;
   status: OrderStatus;
   totalPrice: string;
+  totalItems: number;
   createdAt: string;
   updatedAt?: string;
   shippedAt?: string;
   deliveredAt?: string;
   notes?: string;
-  user: User;
-  shippingAddress: Address;
-  billingAddress: Address;
+}
+
+export interface OrderDetails {
+  order: {
+    id: number;
+    orderNumber: string;
+    status: OrderStatus;
+    totalPrice: string;
+    createdAt: string;
+    shippedAt?: string;
+    deliveredAt?: string;
+    totalItems: number;
+    notes?: string;
+  };
   items: OrderItem[];
+  addresses: {
+    shipping: {
+      formatted: string;
+    };
+    billing: {
+      formatted: string;
+    };
+  };
 }
 
 export interface OrderItem {
   id: number;
+  productName: string;
   quantity: number;
   price: string;
-  productName: string;
-  createdAt: string;
-  product: Product;
+  totalPrice: string;
 }
 
 export interface CreateOrderRequest {
-  shippingAddress: string; // IRI
-  billingAddress: string; // IRI
+  shippingAddressId: number;
+  billingAddressId: number;
   notes?: string;
+  paymentMethod?: 'card' | 'paypal' | 'bank_transfer';
+  acceptTerms?: boolean;
+  saveAddresses?: boolean;
 }
 
-export interface OrderFilters {
+export interface OrderFilterRequest {
   status?: OrderStatus;
-  dateFrom?: string;
-  dateTo?: string;
-  user?: number;
+  startDate?: string;
+  endDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  userId?: number;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: 'created_at' | 'updated_at' | 'total_price' | 'order_number';
+  sortOrder?: 'asc' | 'desc';
 }
 
-export interface OrderSummary {
-  totalItems: number;
-  totalQuantity: number;
-  totalPrice: string;
-  isCompleted: boolean;
-  canBeCancelled: boolean;
+export interface OrderListResponse {
+  orders: Order[];
+  total: number;
 }
 
-export interface Address {
-  id: number;
-  firstName: string;
-  lastName: string;
-  street: string;
-  city: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
-  isDefault: boolean;
+export interface OrderTracking {
+  orderNumber: string;
+  status: OrderStatus;
   createdAt: string;
   updatedAt?: string;
-  user?: User;
+  shippedAt?: string;
+  deliveredAt?: string;
+  timeline: Array<{
+    status: string;
+    label: string;
+    date: string;
+    completed: boolean;
+  }>;
+  canBeCancelled: boolean;
+  isCompleted: boolean;
 }
 
-export interface CreateAddressRequest {
-  firstName: string;
-  lastName: string;
-  street: string;
-  city: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
-  isDefault?: boolean;
+export interface OrderStats {
+  totalOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  totalSpent: string;
+  averageOrderValue: string;
 }
 
-export interface UpdateAddressRequest {
-  firstName?: string;
-  lastName?: string;
-  street?: string;
-  city?: string;
-  zipCode?: string;
-  country?: string;
-  phone?: string;
-  isDefault?: boolean;
+export interface CancelOrderRequest {
+  reason: 'customer_request' | 'payment_failed' | 'stock_unavailable' | 'shipping_issue' | 'other';
+  comment?: string;
+  refundPayment?: boolean;
+  restoreStock?: boolean;
+}
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatus;
+  comment?: string;
+  notifyCustomer?: boolean;
 }

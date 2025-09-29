@@ -1,24 +1,36 @@
-import { Product } from "./product";
-import { User } from "./user";
+export interface CartSummary {
+  cart: {
+    id: number;
+    totalItems: number;
+    totalQuantity: number;
+    totalPrice: string;
+    isEmpty: boolean;
+  };
+  items: CartItemDetails[];
+}
 
-export interface Cart {
+export interface CartItemDetails {
   id: number;
-  createdAt: string;
-  updatedAt?: string;
-  user: User;
-  items: CartItem[];
+  quantity: number;
+  totalPrice: string;
+  product: {
+    id: number;
+    name: string;
+    price: string;
+    stock: number;
+  };
 }
 
 export interface CartItem {
   id: number;
   quantity: number;
+  totalPrice: string;
   createdAt: string;
   updatedAt?: string;
-  product: Product;
 }
 
 export interface AddToCartRequest {
-  product: string; // IRI
+  productId: number;
   quantity: number;
 }
 
@@ -26,15 +38,32 @@ export interface UpdateCartItemRequest {
   quantity: number;
 }
 
-export interface CartSummary {
+export interface MergeGuestCartRequest {
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
+}
+
+export interface CartValidationResponse {
+  isValid: boolean;
+  errors?: string[];
+  cartSummary: CartSummary['cart'];
+}
+
+export interface CartCountResponse {
   totalItems: number;
   totalQuantity: number;
-  totalPrice: string;
   isEmpty: boolean;
 }
 
 export interface CartState {
-  cart: Cart | null;
+  cart: CartSummary | null;
   isLoading: boolean;
   error: string | null;
+}
+
+// Types pour l'ajout rapide
+export interface QuickAddResponse {
+  cartCount: number;
 }
