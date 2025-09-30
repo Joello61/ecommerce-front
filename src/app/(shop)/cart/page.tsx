@@ -1,90 +1,49 @@
-// src/app/(shop)/cart/page.tsx
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Metadata } from 'next'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingBag, ArrowRight, Trash2, ShoppingCart } from 'lucide-react'
+import { ConnectedCartSummary } from '@/components/features/cart/ConnectedCartSummary'
+import { ConnectedCartItem } from '@/components/features/cart/ConnectedCartItem'
 import { useCart } from '@/components/providers/CartProvider'
-import { CartItem } from '@/components/features/cart/CartItem'
-import { CartSummary } from '@/components/features/cart/CartSummary'
-import Loading from '@/components/ui/Loading'
+
+export const metadata: Metadata = {
+  title: 'Panier | Sunset Commerce',
+  description: 'Votre panier d\'achats'
+}
 
 export default function CartPage() {
-  const router = useRouter()
-  const {
-    cart,
-    isLoading,
-    isEmpty,
-    clearCart,
-    refreshCart
-  } = useCart()
-
-  // Rafraîchir le panier au montage
-  useEffect(() => {
-    refreshCart()
-  }, [refreshCart])
+  const { cart, isEmpty, clearCart, isLoading } = useCart()
 
   const handleClearCart = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
-      try {
-        await clearCart()
-      } catch (error) {
-        console.error('Erreur:', error)
-      }
+    if (window.confirm('Vider votre panier ?')) {
+      await clearCart()
     }
-  }
-
-  const handleCheckout = () => {
-    router.push('/checkout')
-  }
-
-  // État de chargement
-  if (isLoading && !cart) {
-    return <Loading size="lg" text="Chargement du panier..." centered />
   }
 
   // Panier vide
   if (isEmpty()) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto text-center"
-          >
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 mb-6">
-              <ShoppingBag className="h-12 w-12 text-primary" />
-            </div>
-            
-            <h1 className="text-3xl font-bold mb-4">Votre panier est vide</h1>
-            <p className="text-muted-foreground mb-8">
-              Découvrez notre sélection de produits et ajoutez vos articles préférés
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/products')}
-                className="btn-primary inline-flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                Découvrir les produits
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/categories')}
-                className="btn-outline"
-              >
-                Parcourir les catégories
-              </motion.button>
-            </div>
-          </motion.div>
+      <div className="container py-16 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+          
+          <h1 className="text-2xl font-semibold text-gray-900 mb-3">
+            Votre panier est vide
+          </h1>
+          <p className="text-gray-600 mb-8">
+            Découvrez nos produits et ajoutez vos articles préférés
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/products" className="btn-primary">
+              Découvrir les produits
+            </Link>
+            <Link href="/categories" className="btn-outline">
+              Parcourir les catégories
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -93,141 +52,82 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-gray-200">
         <div className="container py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="text-4xl font-bold mb-2">Panier</h1>
-            <p className="text-muted-foreground">
-              {cart?.cart.totalItems} article{cart?.cart.totalItems && cart.cart.totalItems > 1 ? 's' : ''} dans votre panier
-            </p>
-          </motion.div>
+          <h1 className="text-3xl font-semibold text-gray-900 mb-2">Panier</h1>
+          <p className="text-gray-600">
+            {cart?.cart.totalItems} article{cart?.cart.totalItems && cart.cart.totalItems > 1 ? 's' : ''}
+          </p>
         </div>
       </div>
 
       {/* Contenu */}
       <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Liste des articles */}
+          {/* Articles */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Actions en-tête */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Articles</h2>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Articles</h2>
+              <button
                 onClick={handleClearCart}
                 disabled={isLoading}
-                className="inline-flex items-center gap-2 text-sm text-danger hover:text-danger/80 transition-colors"
+                className="text-sm text-danger hover:text-red-700 transition-colors disabled:opacity-50"
               >
-                <Trash2 className="h-4 w-4" />
                 Vider le panier
-              </motion.button>
+              </button>
             </div>
 
-            {/* Items */}
-            <AnimatePresence mode="popLayout">
-              {cart?.items.map((item) => (
-                <CartItem key={item.id} item={item} />
-              ))}
-            </AnimatePresence>
+            {cart?.items.map((item) => (
+              <ConnectedCartItem key={item.id} item={item} />
+            ))}
 
-            {/* Continuer les achats */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="pt-6"
-            >
-              <Link 
+            <div className="pt-4">
+              <Link
                 href="/products"
                 className="inline-flex items-center gap-2 text-primary hover:text-primary-dark transition-colors"
               >
-                <ArrowRight className="h-4 w-4 rotate-180" />
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
                 Continuer mes achats
               </Link>
-            </motion.div>
+            </div>
           </div>
 
           {/* Résumé */}
           <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="sticky top-4"
-            >
-              <div className="card p-6">
-                <h2 className="text-xl font-semibold mb-6">Résumé de la commande</h2>
-                
-                <CartSummary 
-                  cart={cart!} 
-                  showShipping 
-                />
+            <div className="sticky top-4 card p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Résumé
+              </h2>
 
-                <div className="mt-6 space-y-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleCheckout}
-                    disabled={isLoading}
-                    className="btn-primary w-full inline-flex items-center justify-center gap-2"
-                  >
-                    Passer la commande
-                    <ArrowRight className="h-5 w-5" />
-                  </motion.button>
+              <ConnectedCartSummary showShipping />
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => router.push('/products')}
-                    className="btn-outline w-full"
-                  >
-                    Continuer mes achats
-                  </motion.button>
-                </div>
-
-                {/* Informations supplémentaires */}
-                <div className="mt-6 pt-6 border-t border-border space-y-3 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                    <span>Paiement 100% sécurisé</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                    <span>Livraison gratuite dès 50€</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                    <span>Retour gratuit sous 30 jours</span>
-                  </div>
-                </div>
+              <div className="mt-6 space-y-3">
+                <Link href="/checkout" className="btn-primary w-full">
+                  Passer la commande
+                </Link>
+                <Link href="/products" className="btn-outline w-full">
+                  Continuer mes achats
+                </Link>
               </div>
 
-              {/* Moyens de paiement */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="mt-4 text-center"
-              >
-                <p className="text-xs text-muted-foreground mb-2">
-                  Moyens de paiement acceptés
-                </p>
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  {['Visa', 'Mastercard', 'PayPal', 'Apple Pay'].map((method) => (
-                    <div
-                      key={method}
-                      className="px-3 py-2 bg-muted rounded text-xs font-medium"
-                    >
-                      {method}
-                    </div>
-                  ))}
+              {/* Infos */}
+              <div className="mt-6 pt-6 border-t border-gray-200 space-y-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                  <span>Paiement sécurisé</span>
                 </div>
-              </motion.div>
-            </motion.div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                  <span>Livraison gratuite dès 50€</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                  <span>Retour gratuit 30 jours</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

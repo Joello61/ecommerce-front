@@ -1,4 +1,3 @@
-// src/lib/api.ts
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 import { API_CONFIG } from './constants'
 import { ApiResponse, ApiError } from '@/types'
@@ -64,9 +63,9 @@ class ApiClient {
   private handleRequest(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
     // Log des requêtes en développement
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`)
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
       if (config.data) {
-        console.log('📤 Request Data:', config.data)
+        console.log('Request Data:', config.data)
       }
     }
 
@@ -77,7 +76,7 @@ class ApiClient {
    * Gestion des erreurs de requête
    */
   private handleRequestError(error: AxiosError): Promise<never> {
-    console.error('❌ Request Error:', error.message)
+    console.error('Request Error:', error.message)
     return Promise.reject(error)
   }
 
@@ -87,8 +86,8 @@ class ApiClient {
   private handleResponse(response: AxiosResponse): AxiosResponse {
     // Log des réponses en développement
     if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ API Response: ${response.status} ${response.config.url}`)
-      console.log('📥 Response Data:', response.data)
+      console.log(`API Response: ${response.status} ${response.config.url}`)
+      console.log('Response Data:', response.data)
     }
 
     return response
@@ -101,7 +100,7 @@ class ApiClient {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean; _retryCount?: number }
 
     // Log de l'erreur
-    console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`)
+    console.error(`API Error: ${error.response?.status} ${error.config?.url}`)
     
     if (error.response?.status === 401) {
       // Erreur d'authentification - rediriger vers login
@@ -122,7 +121,7 @@ class ApiClient {
       originalRequest._retryCount = (originalRequest._retryCount || 0) + 1
 
       if (originalRequest._retryCount <= this.config.retries!) {
-        console.log(`🔄 Retrying request (${originalRequest._retryCount}/${this.config.retries})`)
+        console.log(`Retrying request (${originalRequest._retryCount}/${this.config.retries})`)
         
         // Attendre avant de réessayer
         await this.delay(this.config.retryDelay! * originalRequest._retryCount)

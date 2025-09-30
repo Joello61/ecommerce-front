@@ -1,4 +1,3 @@
-// src/store/uiStore.ts
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ToastProps } from '@/types'

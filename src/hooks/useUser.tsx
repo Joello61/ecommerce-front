@@ -1,4 +1,3 @@
-// src/hooks/useUser.ts
 import { useCallback } from 'react'
 import { 
   useUserStore,

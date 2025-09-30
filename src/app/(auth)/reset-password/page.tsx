@@ -1,126 +1,42 @@
-// src/app/(auth)/reset-password/page.tsx
-'use client'
+import { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { ConnectedResetPasswordForm } from '@/components/features/auth/ConnectedResetPasswordForm'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Lock, AlertCircle } from 'lucide-react'
-import { ResetPasswordForm } from '@/components/features/auth/ResetPasswordForm'
-import { useAuthStore } from '@/store'
-import Loading from '@/components/ui/Loading'
+export const metadata: Metadata = {
+  title: 'Nouveau mot de passe | Sunset Commerce',
+  description: 'Créez un nouveau mot de passe sécurisé'
+}
 
-export default function ResetPasswordPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const verifyResetToken = useAuthStore(state => state.verifyResetToken)
-  
-  const [token, setToken] = useState<string | null>(null)
-  const [isValidating, setIsValidating] = useState(true)
-  const [isValid, setIsValid] = useState(false)
+interface ResetPasswordPageProps {
+  searchParams: {
+    token?: string
+  }
+}
 
-  useEffect(() => {
-    const tokenParam = searchParams.get('token')
-    
-    if (!tokenParam) {
-      setIsValidating(false)
-      return
-    }
+export default function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
+  const token = searchParams.token
 
-    setToken(tokenParam)
-
-    // Vérifier la validité du token
-    const validateToken = async () => {
-      try {
-        const valid = await verifyResetToken(tokenParam)
-        setIsValid(valid)
-      } catch {
-        setIsValid(false)
-      } finally {
-        setIsValidating(false)
-      }
-    }
-
-    validateToken()
-  }, [searchParams, verifyResetToken])
-
-  const handleSuccess = () => {
-    router.push('/login?reset=success')
+  if (!token) {
+    redirect('/login')
   }
 
-  // Chargement de la validation
-  if (isValidating) {
-    return (
-      <div className="w-full">
-        <div className="card p-8">
-          <Loading 
-            size="lg" 
-            text="Vérification du lien..." 
-            centered 
-          />
-        </div>
-      </div>
-    )
-  }
-
-  // Token manquant ou invalide
-  if (!token || !isValid) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full"
-      >
-        <div className="card p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-danger/10 mb-4">
-            <AlertCircle className="h-8 w-8 text-danger" />
-          </div>
-          
-          <h2 className="text-2xl font-bold mb-2">Lien invalide ou expiré</h2>
-          <p className="text-muted-foreground mb-6">
-            Ce lien de réinitialisation n&apos;est plus valide. Il a peut-être expiré ou a déjà été utilisé.
-          </p>
-          
-          <button
-            onClick={() => router.push('/forgot-password')}
-            className="btn-primary"
-          >
-            Demander un nouveau lien
-          </button>
-        </div>
-      </motion.div>
-    )
-  }
-
-  // Formulaire de réinitialisation
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="w-full"
-    >
-      {/* En-tête */}
+    <div className="card p-8">
       <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark mb-4"
-        >
-          <Lock className="h-8 w-8 text-white" />
-        </motion.div>
-        
-        <h1 className="text-3xl font-bold mb-2">Nouveau mot de passe</h1>
-        <p className="text-muted-foreground">
-          Choisissez un mot de passe sécurisé pour votre compte
+        <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-6 h-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Nouveau mot de passe
+        </h1>
+        <p className="text-gray-600">
+          Choisissez un mot de passe fort et sécurisé
         </p>
       </div>
 
-      {/* Formulaire */}
-      <ResetPasswordForm 
-        token={token}
-        onSuccess={handleSuccess}
-      />
-    </motion.div>
+      <ConnectedResetPasswordForm token={token} />
+    </div>
   )
 }

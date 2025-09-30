@@ -1,76 +1,60 @@
-import { forwardRef } from 'react'
+import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
-import type { BaseComponentProps } from '@/types'
 
-interface CardProps extends BaseComponentProps {
-  variant?: 'default' | 'product' | 'feature'
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'product'
   padding?: 'none' | 'sm' | 'md' | 'lg'
-  hover?: boolean
-  clickable?: boolean
-  onClick?: () => void
+  asLink?: boolean
 }
 
-interface CardHeaderProps extends BaseComponentProps {
+interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title?: string
   subtitle?: string
   action?: React.ReactNode
 }
 
-type CardContentProps = BaseComponentProps
+type CardContentProps = HTMLAttributes<HTMLDivElement>
+type CardFooterProps = HTMLAttributes<HTMLDivElement>
 
-type CardFooterProps = BaseComponentProps
-
+// Composant principal Card
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({
-    variant = 'default',
-    padding = 'md',
-    hover = false,
-    clickable = false,
-    onClick,
-    className,
-    children,
-    ...props
-  }, ref) => {
-    
-    const getVariantClass = () => {
-      switch (variant) {
-        case 'product':
-          return 'card-product'
-        case 'feature':
-          return 'card-feature'
-        default:
-          return 'card'
-      }
-    }
+  (
+    {
+      variant = 'default',
+      padding = 'md',
+      asLink = false,
+      className,
+      children,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
+    // Utilise les utilities de globals.css
+    const baseClass = variant === 'product' ? 'card-product' : 'card'
 
-    const getPaddingClass = () => {
-      if (variant === 'feature') return '' // feature a déjà son padding
-      
-      switch (padding) {
-        case 'none':
-          return ''
-        case 'sm':
-          return 'p-3'
-        case 'lg':
-          return 'p-8'
-        default:
-          return 'p-6'
-      }
-    }
+    const paddingClass = {
+      none: 'p-0',
+      sm: 'p-4',
+      md: 'p-6',
+      lg: 'p-8'
+    }[padding]
 
-    const cardClassName = cn(
-      getVariantClass(),
-      getPaddingClass(),
-      clickable && 'cursor-pointer',
-      hover && !variant.includes('card-') && 'hover:shadow-lg hover:-translate-y-1',
+    const classes = cn(
+      baseClass,
+      paddingClass,
+      asLink && 'cursor-pointer',
+      'h-full flex flex-col', // Hauteur uniforme dans les grids
       className
     )
 
     return (
       <div
         ref={ref}
-        onClick={clickable ? onClick : undefined}
-        className={cardClassName}
+        onClick={onClick}
+        className={classes}
+        role={asLink ? 'button' : undefined}
+        tabIndex={asLink ? 0 : undefined}
         {...props}
       >
         {children}
@@ -79,57 +63,57 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   }
 )
 
+// Card Header
 const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ title, subtitle, action, className, children, ...props }, ref) => {
+    if (!title && !subtitle && !children && !action) return null
+
     return (
       <div
         ref={ref}
-        className={cn('flex items-start justify-between mb-4', className)}
+        className={cn('flex items-start justify-between gap-4 mb-4', className)}
         {...props}
       >
         <div className="flex-1 min-w-0">
           {title && (
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">
+            <h3 className="text-lg font-semibold text-gray-900 truncate">
               {title}
             </h3>
           )}
           {subtitle && (
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
               {subtitle}
             </p>
           )}
           {children}
         </div>
-        {action && (
-          <div className="ml-4 flex-shrink-0">
-            {action}
-          </div>
-        )}
+        {action && <div className="flex-shrink-0">{action}</div>}
       </div>
     )
   }
 )
 
+// Card Content
 const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn('flex-1', className)}
-        {...props}
-      >
+      <div ref={ref} className={cn('flex-1', className)} {...props}>
         {children}
       </div>
     )
   }
 )
 
+// Card Footer
 const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={cn('flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-700', className)}
+        className={cn(
+          'flex items-center justify-between gap-4 mt-auto pt-4 border-t border-gray-200',
+          className
+        )}
         {...props}
       >
         {children}

@@ -1,4 +1,3 @@
-// src/store/productStore.ts
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { getErrorMessage } from '@/lib/api'

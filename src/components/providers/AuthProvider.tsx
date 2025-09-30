@@ -1,4 +1,3 @@
-// src/components/providers/AuthProvider.tsx
 'use client'
 
 import React, { createContext, useContext, useEffect, useRef } from 'react'
@@ -27,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authStore = useAuthStore()
   const hasInitialized = useRef(false)
 
-  // ✅ Vérification auth UNE SEULE FOIS au montage
+  // Vérification auth au montage
   useEffect(() => {
     if (hasInitialized.current) return
     hasInitialized.current = true
@@ -36,14 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await authStore.checkAuth()
       } catch (error) {
-        console.debug('Auth check failed (normal if not logged in)')
+        console.debug('Auth check failed')
+        console.log(error)
       }
     }
 
     initAuth()
   }, [authStore])
 
-  // ✅ GARDER toutes les méthodes avec gestion des toasts
   const login = async (credentials: LoginCredentials) => {
     try {
       await authStore.login(credentials)
@@ -72,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       showToast.info('Vous avez été déconnecté avec succès', 'À bientôt!')
     } catch (error) {
       showToast.info('Vous avez été déconnecté', 'Session terminée')
+      console.log('Logout error:', error)
     }
   }
 
@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await authStore.checkAuth()
     } catch (error) {
       console.debug('Vérification auth échouée')
+      console.log(error)
     }
   }
 

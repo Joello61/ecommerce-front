@@ -1,4 +1,3 @@
-// src/hooks/useProducts.ts
 import { useCallback } from 'react'
 import { 
   useProductStore,
@@ -66,6 +65,7 @@ interface UseProductsReturn {
 }
 
 export const useProducts = (): UseProductsReturn => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const state = useProductStore()
   
   // Sélecteurs optimisés

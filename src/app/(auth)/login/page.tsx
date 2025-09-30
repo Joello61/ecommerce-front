@@ -1,70 +1,41 @@
-// src/app/(auth)/login/page.tsx
-'use client'
-
-import { useRouter } from 'next/navigation'
+import { Metadata } from 'next'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { LogIn } from 'lucide-react'
-import { LoginForm } from '@/components/features/auth/LoginForm'
+import { Lock } from 'lucide-react'
+import { ConnectedLoginForm } from '@/components/features/auth/ConnectedLoginForm'
+
+export const metadata: Metadata = {
+  title: 'Connexion | Sunset Commerce',
+  description: 'Connectez-vous à votre compte'
+}
 
 export default function LoginPage() {
-  const router = useRouter()
-
-  const handleSuccess = () => {
-    router.push('/')
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="w-full"
-    >
-      {/* En-tête */}
+    <div className="card p-8">
       <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark mb-4"
-        >
-          <LogIn className="h-8 w-8 text-white" />
-        </motion.div>
-        
-        <h1 className="text-3xl font-bold mb-2">Bon retour !</h1>
-        <p className="text-muted-foreground">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-6 h-6 text-primary"/>
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Bon retour !
+        </h1>
+        <p className="text-gray-600">
           Connectez-vous pour accéder à votre compte
         </p>
       </div>
 
-      {/* Formulaire */}
-      <div className="card p-8">
-        <LoginForm onSuccess={handleSuccess} />
+      <ConnectedLoginForm />
 
-        {/* Lien mot de passe oublié */}
-        <div className="text-center mt-4">
+      <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+        <p className="text-sm text-gray-600">
+          Pas encore de compte ?{' '}
           <Link 
-            href="/forgot-password"
-            className="text-sm text-primary hover:text-primary-dark transition-colors"
-          >
-            Mot de passe oublié ?
-          </Link>
-        </div>
-      </div>
-
-      {/* Inscription */}
-      <div className="text-center mt-6">
-        <p className="text-sm text-muted-foreground">
-          Vous n&apos;avez pas de compte ?{' '}
-          <Link 
-            href="/register"
-            className="text-primary font-medium hover:text-primary-dark transition-colors"
+            href="/register" 
+            className="font-medium text-primary hover:text-primary-dark transition-colors"
           >
             Créer un compte
           </Link>
         </p>
       </div>
-    </motion.div>
+    </div>
   )
 }

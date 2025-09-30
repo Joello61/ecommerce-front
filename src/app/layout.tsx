@@ -1,69 +1,56 @@
-// src/app/layout.tsx
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+// app/layout.tsx
+'use client'
+
+import { usePathname } from 'next/navigation'
+import { Figtree } from 'next/font/google'
 import './globals.css'
 
-// Providers
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/components/providers/CartProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
-// Configuration
-import { APP_CONFIG } from '@/lib/constants'
+import { ConnectedShopHeader } from '@/components/features/layouts/ConnectedShopHeader'
+import { AuthHeader } from '@/components/layout/AuthHeader'
+import { Footer } from '@/components/layout/Footer'
+import { ConnectedCartDrawer } from '@/components/features/cart/ConnectedCartDrawer'
 
-const inter = Inter({ 
+const figtree = Figtree({ 
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
-  variable: '--font-inter'
+  variable: '--font-figtree'
 })
 
-export const metadata: Metadata = {
-  title: {
-    default: APP_CONFIG.name,
-    template: `%s | ${APP_CONFIG.name}`
-  },
-  description: APP_CONFIG.description,
-  keywords: ['e-commerce', 'boutique en ligne', 'shopping', 'produits'],
-  authors: [{ name: APP_CONFIG.name }],
-  creator: APP_CONFIG.name,
-  openGraph: {
-    type: 'website',
-    locale: 'fr_FR',
-    url: APP_CONFIG.url,
-    siteName: APP_CONFIG.name,
-    title: APP_CONFIG.name,
-    description: APP_CONFIG.description,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: APP_CONFIG.name,
-    description: APP_CONFIG.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  icons: {
-    icon: '/favicon.ico',
-  },
-  manifest: '/manifest.json',
-}
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  
+  const isAuthPage = pathname?.includes('/login') || 
+                     pathname?.includes('/register') || 
+                     pathname?.includes('/forgot-password') ||
+                     pathname?.includes('/reset-password') ||
+                     pathname?.includes('/change-password')
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
   return (
-    <html lang="fr" suppressHydrationWarning className={inter.variable}>
+    <html lang="fr" suppressHydrationWarning className={figtree.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
         <QueryProvider>
-          <ThemeProvider defaultTheme="system" defaultLanguage="fr">
+          <ThemeProvider defaultLanguage="fr">
             <AuthProvider>
               <CartProvider>
-                {/* ✅ Pas de Header/Footer ici - les layouts enfants s'en chargent */}
-                {children}
+                <div className="min-h-screen flex flex-col">
+                  {/* Header conditionnel */}
+                  {isAuthPage ? <AuthHeader /> : <ConnectedShopHeader />}
+                  
+                  {/* Contenu */}
+                  <main className="flex-1">{children}</main>
+                  
+                  {/* Footer */}
+                  <Footer />
+                  
+                  {/* CartDrawer - seulement hors auth */}
+                  {!isAuthPage && <ConnectedCartDrawer />}
+                </div>
               </CartProvider>
             </AuthProvider>
           </ThemeProvider>

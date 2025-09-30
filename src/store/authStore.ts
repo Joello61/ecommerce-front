@@ -179,6 +179,7 @@ export const useAuthStore = create<AuthState>()(
                     error: null
                   })
                 } catch (err) {
+                  console.log('checkAuth error:', err)
                   set({ 
                     user: null,
                     isAuthenticated: false,
@@ -197,6 +198,7 @@ export const useAuthStore = create<AuthState>()(
               }
             }
           } catch (error) {
+            console.log('checkAuth error:', error)
             if (currentState.isAuthenticated || currentState.user) {
               set({ 
                 user: null, 

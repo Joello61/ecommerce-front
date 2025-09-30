@@ -1,208 +1,114 @@
-// src/app/(account)/profile/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Edit, Plus, MapPin } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
-import { ProfileCard } from '@/components/features/users/ProfileCard'
-import { ProfileForm } from '@/components/features/users/ProfileForm'
-import { AddressCard } from '@/components/features/users/AddresseCard'
-import { AddressForm } from '@/components/features/users/AddresseForm'
-import { showToast } from '@/store/uiStore'
-import type { Address, AddressRequest, UpdateProfileRequest } from '@/types'
-import Loading from '@/components/ui/Loading'
+import { ConnectedProfileCard } from '@/components/features/user/ConnectedProfileCard'
+import { ConnectedProfileForm } from '@/components/features/user/ConnectedProfileForm'
+import { ConnectedAddressCard } from '@/components/features/user/ConnectedAddressCard'
+import { ConnectedAddressForm } from '@/components/features/user/ConnectedAddressForm'
 import Modal from '@/components/ui/Modal'
+import Loading from '@/components/ui/Loading'
+import type { Address } from '@/types'
 
 export default function ProfilePage() {
-  const {
-    profile,
-    addresses,
-    isProfileLoading,
-    isAddressesLoading,
-    isUpdating,
-    fetchProfile,
-    updateProfile,
-    uploadAvatar,
-    fetchAddresses,
-    createAddress,
-    updateAddress,
-    deleteAddress,
-    setDefaultAddress,
-  } = useUserStore()
-
+  const { profile, addresses, isProfileLoading, isAddressesLoading, fetchProfile, fetchAddresses } = useUserStore()
+  
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isAddingAddress, setIsAddingAddress] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [deletingAddressId, setDeletingAddressId] = useState<number | null>(null)
 
-  // Charger les données au montage
   useEffect(() => {
     fetchProfile()
     fetchAddresses()
   }, [fetchProfile, fetchAddresses])
 
-  const handleUpdateProfile = async (data: UpdateProfileRequest) => {
-    try {
-      await updateProfile(data)
-      setIsEditingProfile(false)
-      showToast.success('Profil mis à jour', 'Vos informations ont été enregistrées')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
-  const handleUploadAvatar = async (file: File) => {
-    try {
-      await uploadAvatar(file)
-      showToast.success('Photo de profil mise à jour')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
-  const handleCreateAddress = async (data: AddressRequest) => {
-    try {
-      await createAddress(data)
-      setIsAddingAddress(false)
-      showToast.success('Adresse ajoutée')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
-  const handleUpdateAddress = async (data: AddressRequest) => {
-    if (!editingAddress) return
-    
-    try {
-      await updateAddress(editingAddress.id, data)
-      setEditingAddress(null)
-      showToast.success('Adresse mise à jour')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
-  const handleDeleteAddress = async () => {
-    if (!deletingAddressId) return
-    
-    try {
-      await deleteAddress(deletingAddressId)
-      setDeletingAddressId(null)
-      showToast.success('Adresse supprimée')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
-  const handleSetDefault = async (addressId: number) => {
-    try {
-      await setDefaultAddress(addressId)
-      showToast.success('Adresse définie par défaut')
-    } catch (error) {
-      console.error('Erreur:', error)
-    }
-  }
-
   if (isProfileLoading || !profile) {
-    return <Loading size="lg" text="Chargement du profil..." centered />
+    return <Loading size="lg" text="Chargement..." centered />
   }
 
   return (
     <div className="space-y-8">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Mon profil</h1>
-          <p className="text-muted-foreground">
-            Gérez vos informations personnelles et vos adresses
-          </p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-semibold text-gray-900 mb-2">Mon profil</h1>
+        <p className="text-gray-600">
+          Gérez vos informations personnelles et vos adresses
+        </p>
       </div>
 
       {/* Profil */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Informations personnelles</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Informations personnelles</h2>
           {!isEditingProfile && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setIsEditingProfile(true)}
-              className="btn-outline inline-flex items-center gap-2"
+              className="btn-outline"
             >
-              <Edit className="h-4 w-4" />
               Modifier
-            </motion.button>
+            </button>
           )}
         </div>
 
         {isEditingProfile ? (
-          <ProfileForm
-            profile={profile}
-            onSubmit={handleUpdateProfile}
+          <ConnectedProfileForm
+            onSuccess={() => setIsEditingProfile(false)}
             onCancel={() => setIsEditingProfile(false)}
-            isLoading={isUpdating}
           />
         ) : (
-          <ProfileCard
-            profile={profile}
-            onUpdateAvatar={handleUploadAvatar}
-            editable
-          />
+          <ConnectedProfileCard editable />
         )}
       </section>
 
       {/* Adresses */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Mes adresses</h2>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <h2 className="text-xl font-semibold text-gray-900">Mes adresses</h2>
+          <button
             onClick={() => setIsAddingAddress(true)}
-            className="btn-primary inline-flex items-center gap-2"
+            className="btn-primary"
           >
-            <Plus className="h-4 w-4" />
             Ajouter une adresse
-          </motion.button>
+          </button>
         </div>
 
         {isAddressesLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="card p-4 animate-pulse">
-                <div className="h-6 bg-muted rounded mb-2" />
-                <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                <div className="h-4 bg-muted rounded w-1/2" />
+              <div key={i} className="card p-4 animate-pulse h-full">
+                <div className="h-6 bg-gray-200 rounded mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : addresses.length === 0 ? (
           <div className="card p-12 text-center">
-            <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Aucune adresse</h3>
-            <p className="text-muted-foreground mb-6">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune adresse</h3>
+            <p className="text-gray-600 mb-6">
               Ajoutez votre première adresse de livraison
             </p>
             <button
               onClick={() => setIsAddingAddress(true)}
-              className="btn-primary inline-flex items-center gap-2"
+              className="btn-primary"
             >
-              <Plus className="h-4 w-4" />
               Ajouter une adresse
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {addresses.map((address) => (
-              <AddressCard
+              <ConnectedAddressCard
                 key={address.id}
                 address={address}
                 onEdit={setEditingAddress}
-                onDelete={setDeletingAddressId}
-                onSetDefault={handleSetDefault}
-                isLoading={isUpdating}
               />
             ))}
           </div>
@@ -215,11 +121,11 @@ export default function ProfilePage() {
         onClose={() => setIsAddingAddress(false)}
         title="Nouvelle adresse"
         size="lg"
+        showClose
       >
-        <AddressForm
-          onSubmit={handleCreateAddress}
+        <ConnectedAddressForm
+          onSuccess={() => setIsAddingAddress(false)}
           onCancel={() => setIsAddingAddress(false)}
-          isLoading={isUpdating}
         />
       </Modal>
 
@@ -229,13 +135,13 @@ export default function ProfilePage() {
         onClose={() => setEditingAddress(null)}
         title="Modifier l'adresse"
         size="lg"
+        showClose
       >
         {editingAddress && (
-          <AddressForm
+          <ConnectedAddressForm
             address={editingAddress}
-            onSubmit={handleUpdateAddress}
+            onSuccess={() => setEditingAddress(null)}
             onCancel={() => setEditingAddress(null)}
-            isLoading={isUpdating}
           />
         )}
       </Modal>
@@ -247,10 +153,12 @@ export default function ProfilePage() {
         title="Supprimer l'adresse"
         variant="danger"
         confirmText="Supprimer"
-        onConfirm={handleDeleteAddress}
-        loading={isUpdating}
+        onConfirm={() => {
+          // La logique est gérée par ConnectedAddressCard
+          setDeletingAddressId(null)
+        }}
       >
-        <p className="text-muted-foreground">
+        <p className="text-gray-600">
           Êtes-vous sûr de vouloir supprimer cette adresse ? Cette action est irréversible.
         </p>
       </Modal>

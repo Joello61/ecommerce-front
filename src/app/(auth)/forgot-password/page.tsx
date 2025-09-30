@@ -1,61 +1,28 @@
-// src/app/(auth)/forgot-password/page.tsx
-'use client'
+import { Metadata } from 'next'
+import { ConnectedForgotPasswordForm } from '@/components/features/auth/ConnectedForgotPasswordForm'
+import { Mail } from 'lucide-react'
 
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { KeyRound, ArrowLeft } from 'lucide-react'
-import { ForgotPasswordForm } from '@/components/features/auth/ForgotPasswordForm'
+export const metadata: Metadata = {
+  title: 'Mot de passe oublié | Sunset Commerce',
+  description: 'Réinitialisez votre mot de passe'
+}
 
 export default function ForgotPasswordPage() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="w-full"
-    >
-      {/* Retour */}
-      <Link 
-        href="/login"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Retour à la connexion
-      </Link>
-
-      {/* En-tête */}
-      <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark mb-4"
-        >
-          <KeyRound className="h-8 w-8 text-white" />
-        </motion.div>
-        
-        <h1 className="text-3xl font-bold mb-2">Mot de passe oublié ?</h1>
-        <p className="text-muted-foreground">
-          Pas de problème, nous vous enverrons les instructions pour le réinitialiser
+    <div className="card p-8">
+      <div className="text-center">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Mail className="w-6 h-6 text-primary"/>
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Mot de passe oublié ?
+        </h1>
+        <p className="text-gray-600">
+          Entrez votre email pour recevoir un lien de réinitialisation
         </p>
       </div>
 
-      {/* Formulaire */}
-      <ForgotPasswordForm 
-        onCancel={() => window.location.href = '/login'}
-      />
-
-      {/* Info sécurité */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-6 p-4 rounded-lg bg-muted/50 border border-border"
-      >
-        <p className="text-xs text-muted-foreground text-center">
-          Pour votre sécurité, le lien de réinitialisation sera valable pendant 1 heure uniquement
-        </p>
-      </motion.div>
-    </motion.div>
+      <ConnectedForgotPasswordForm />
+    </div>
   )
 }

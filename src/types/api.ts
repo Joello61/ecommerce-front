@@ -5,7 +5,7 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[]; // ou products, orders selon le contexte
+  items: T[];
   pagination: {
     page: number;
     limit: number;

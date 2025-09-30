@@ -1,185 +1,126 @@
-// src/components/ui/Textarea.tsx
-import { forwardRef, useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useRef, type TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
-import type { TextareaProps } from '@/types'
 
-interface ExtendedTextareaProps extends Omit<TextareaProps, 'onChange'> {
-  id?: string
-  name?: string
+interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {
   label?: string
   helperText?: string
-  characterCount?: boolean
+  error?: string
+  showCount?: boolean
   autoResize?: boolean
   minRows?: number
   maxRows?: number
   onChange?: (value: string, event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onChangeEvent?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
 }
 
-const Textarea = forwardRef<HTMLTextAreaElement, ExtendedTextareaProps>(
-  ({
-    placeholder,
-    value = '',
-    onChange,
-    onChangeEvent,
-    onBlur,
-    onFocus,
-    error,
-    disabled = false,
-    required = false,
-    maxLength,
-    rows = 3,
-    resize = 'vertical',
-    className,
-    id,
-    name,
-    label,
-    helperText,
-    characterCount = false,
-    autoResize = false,
-    minRows = 2,
-    maxRows = 10,
-    ...props
-  }, ref) => {
-    
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    {
+      label,
+      helperText,
+      error,
+      showCount = false,
+      autoResize = false,
+      minRows = 3,
+      maxRows = 10,
+      disabled = false,
+      required = false,
+      maxLength,
+      rows = 3,
+      value = '',
+      onChange,
+      className,
+      id,
+      name,
+      ...props
+    },
+    ref
+  ) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const inputId = id || name
 
-    // Auto-resize functionality
+    // Auto-resize
     useEffect(() => {
-      if (autoResize && textareaRef.current) {
-        const textarea = textareaRef.current
-        
-        const adjustHeight = () => {
-          textarea.style.height = 'auto'
-          const scrollHeight = textarea.scrollHeight
-          const minHeight = minRows * 24 // Approximation de la hauteur d'une ligne
-          const maxHeight = maxRows * 24
-          
-          const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight)
-          textarea.style.height = `${newHeight}px`
-        }
+      if (!autoResize || !textareaRef.current) return
 
-        adjustHeight()
-      }
+      const textarea = textareaRef.current
+      textarea.style.height = 'auto'
+      const scrollHeight = textarea.scrollHeight
+      const minHeight = minRows * 24
+      const maxHeight = maxRows * 24
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight)
+      textarea.style.height = `${newHeight}px`
     }, [value, autoResize, minRows, maxRows])
 
-    const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {
-        onChange(event.target.value, event)
-      }
-      if (onChangeEvent) {
-        onChangeEvent(event)
+        onChange(e.target.value, e)
       }
     }
-
-    const getResizeClass = () => {
-      switch (resize) {
-        case 'none':
-          return 'resize-none'
-        case 'horizontal':
-          return 'resize-x'
-        case 'both':
-          return 'resize'
-        default:
-          return 'resize-y'
-      }
-    }
-
-    // Classes pour le textarea en utilisant les mêmes styles que Input
-    const textareaClassName = cn(
-      'flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:ring-blue-400',
-      error && 'border-red-500 focus:ring-red-500 dark:border-red-400 dark:focus:ring-red-400',
-      getResizeClass(),
-      autoResize && 'overflow-hidden',
-      className
-    )
 
     const currentLength = value?.toString().length || 0
-    const showCharacterCount = characterCount && maxLength
 
     return (
       <div className="w-full">
-        {/* Label */}
         {label && (
-          <label 
-            htmlFor={inputId} 
-            className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300"
-          >
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-danger ml-1">*</span>}
           </label>
         )}
 
-        {/* Textarea Container */}
         <div className="relative">
           <textarea
-            ref={(element) => {
+            ref={(el) => {
               if (ref) {
-                if (typeof ref === 'function') {
-                  ref(element)
-                } else {
-                  ref.current = element
-                }
+                if (typeof ref === 'function') ref(el)
+                else ref.current = el
               }
-              textareaRef.current = element
+              textareaRef.current = el
             }}
             id={inputId}
             name={name}
-            placeholder={placeholder}
-            value={value}
-            onChange={handleChange}
-            onBlur={onBlur}
-            onFocus={onFocus}
             disabled={disabled}
             required={required}
             maxLength={maxLength}
             rows={autoResize ? minRows : rows}
-            className={textareaClassName}
+            value={value}
+            onChange={handleChange}
+            className={cn(
+              'input',
+              error && 'border-danger',
+              autoResize ? 'resize-none overflow-hidden' : 'resize-y',
+              'min-h-[5rem]',
+              className
+            )}
             aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={
-              error ? `${inputId}-error` : 
-              helperText ? `${inputId}-helper` : 
-              undefined
-            }
+            aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             {...props}
           />
 
-          {/* Character Count */}
-          {showCharacterCount && (
-            <div className="absolute bottom-2 right-2 text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1 rounded">
-              <span className={cn(
-                maxLength && currentLength > maxLength * 0.9 && 'text-amber-600',
-                maxLength && currentLength >= maxLength && 'text-red-600'
-              )}>
+          {showCount && maxLength && (
+            <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded">
+              <span className={cn(currentLength > maxLength * 0.9 && 'text-warning', currentLength >= maxLength && 'text-danger')}>
                 {currentLength}
               </span>
-              {maxLength && (
-                <span>/{maxLength}</span>
-              )}
+              <span>/{maxLength}</span>
             </div>
           )}
         </div>
 
-        {/* Error Message */}
         {error && (
-          <p id={`${inputId}-error`} className="mt-1 text-sm text-red-600 dark:text-red-400">
+          <p id={`${inputId}-error`} className="mt-1.5 text-sm text-danger">
             {error}
           </p>
         )}
 
-        {/* Helper Text */}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-gray-600">
             {helperText}
           </p>
         )}
 
-        {/* Character count as helper text (alternative position) */}
-        {characterCount && !showCharacterCount && (
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
-            {currentLength}{maxLength && ` / ${maxLength}`} caractères
-          </p>
+        {showCount && !maxLength && (
+          <p className="mt-1.5 text-xs text-gray-500 text-right">{currentLength} caractères</p>
         )}
       </div>
     )

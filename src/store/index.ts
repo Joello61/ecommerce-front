@@ -1,5 +1,3 @@
-// src/store/index.ts
-
 import { useAuthStore } from './authStore'
 import { useCartStore } from './cartStore'
 import { useProductStore } from './productStore'

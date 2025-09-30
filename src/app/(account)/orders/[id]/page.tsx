@@ -1,38 +1,43 @@
-// src/app/(account)/orders/[id]/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { ArrowLeft, Download, X, Package, MapPin, CreditCard } from 'lucide-react'
 import { orderService } from '@/services/orderService'
-import { OrderStatus, OrderTimeline } from '@/components/features/orders/OrderStatus'
+import { ConnectedOrderTimeline } from '@/components/features/orders/ConnectedOrderTimeline'
+import { ConnectedOrderStatus } from '@/components/features/orders/ConnectedOrderStatus'
 import { showToast } from '@/store/uiStore'
-import type { OrderDetails } from '@/types'
-import { formatDate, formatPrice } from '@/lib/utils'
-import Loading from '@/components/ui/Loading'
 import Modal from '@/components/ui/Modal'
+import Loading from '@/components/ui/Loading'
+import { formatPrice } from '@/lib/utils'
+import type { OrderDetails } from '@/types'
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
 
 export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
   const orderNumber = params.id as string
-  
+
   const [order, setOrder] = useState<OrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isCancelling, setIsCancelling] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
 
-  // Charger la commande
   useEffect(() => {
     const loadOrder = async () => {
       try {
         const data = await orderService.getOrder(orderNumber)
         setOrder(data)
       } catch (error) {
-        console.error('Erreur chargement commande:', error)
+        console.error('Erreur:', error)
         showToast.error('Commande introuvable')
-        router.push('/orders')
+        router.push('/account/orders')
       } finally {
         setIsLoading(false)
       }
@@ -43,18 +48,17 @@ export default function OrderDetailPage() {
 
   const handleCancelOrder = async () => {
     if (!order) return
-    
+
     setIsCancelling(true)
     try {
       await orderService.cancelOrder(order.order.orderNumber)
       showToast.success('Commande annulée')
-      // Recharger la commande
       const updatedOrder = await orderService.getOrder(orderNumber)
       setOrder(updatedOrder)
       setShowCancelModal(false)
     } catch (error) {
-      console.error('Erreur annulation:', error)
-      showToast.error('Impossible d\'annuler la commande')
+      console.error('Erreur:', error)
+      showToast.error("Impossible d'annuler la commande")
     } finally {
       setIsCancelling(false)
     }
@@ -62,48 +66,46 @@ export default function OrderDetailPage() {
 
   const handleDownloadInvoice = async () => {
     if (!order) return
-    
+
     try {
       await orderService.downloadInvoice(order.order.orderNumber)
       showToast.success('Facture téléchargée')
     } catch (error) {
-      console.error('Erreur téléchargement:', error)
+      console.error('Erreur:', error)
       showToast.error('Impossible de télécharger la facture')
     }
   }
 
   if (isLoading) {
-    return <Loading size="lg" text="Chargement de la commande..." centered />
+    return <Loading size="lg" text="Chargement..." centered />
   }
 
-  if (!order) {
-    return null
-  }
+  if (!order) return null
 
   const canCancel = ['pending', 'confirmed'].includes(order.order.status)
 
   return (
     <div className="space-y-6">
       {/* Navigation */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={() => router.push('/orders')}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      <button
+        onClick={() => router.push('/account/orders')}
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
         Retour aux commandes
-      </motion.button>
+      </button>
 
-      {/* En-tête */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
             Commande #{order.order.orderNumber}
           </h1>
           <div className="flex flex-wrap items-center gap-3">
-            <OrderStatus status={order.order.status} />
-            <span className="text-sm text-muted-foreground">
+            <ConnectedOrderStatus status={order.order.status} />
+            <span className="text-sm text-gray-600">
               Passée le {formatDate(order.order.createdAt)}
             </span>
           </div>
@@ -112,25 +114,19 @@ export default function OrderDetailPage() {
         {/* Actions */}
         <div className="flex gap-2">
           {canCancel && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setShowCancelModal(true)}
-              className="btn-outline text-danger border-danger hover:bg-danger hover:text-white inline-flex items-center gap-2"
+              className="btn-outline text-danger border-danger hover:bg-danger hover:text-white"
             >
-              <X className="h-4 w-4" />
               Annuler
-            </motion.button>
+            </button>
           )}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleDownloadInvoice}
-            className="btn-outline inline-flex items-center gap-2"
+            className="btn-outline"
           >
-            <Download className="h-4 w-4" />
             Facture
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -139,33 +135,37 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Articles */}
           <div className="card p-6">
-            <h2 className="text-xl font-semibold mb-4">Articles commandés</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Articles commandés</h2>
             <div className="space-y-4">
               {order.items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
-                      <Package className="h-6 w-6 text-muted-foreground" />
+                    <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
                     </div>
                     <div>
-                      <h4 className="font-medium">{item.productName}</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-medium text-gray-900">{item.productName}</h4>
+                      <p className="text-sm text-gray-600">
                         Quantité: {item.quantity} × {formatPrice(item.price)}
                       </p>
                     </div>
                   </div>
-                  <p className="font-semibold">{formatPrice(item.totalPrice)}</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatPrice(item.totalPrice)}
+                  </p>
                 </div>
               ))}
             </div>
 
             {/* Total */}
-            <div className="mt-6 pt-6 border-t border-border">
+            <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between text-lg">
-                <span className="font-semibold">Total</span>
+                <span className="font-semibold text-gray-900">Total</span>
                 <span className="text-2xl font-bold text-primary">
                   {formatPrice(order.order.totalPrice)}
                 </span>
@@ -175,24 +175,26 @@ export default function OrderDetailPage() {
 
           {/* Adresses */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Adresse de livraison */}
             <div className="card p-6">
               <div className="flex items-center gap-2 mb-4">
-                <MapPin className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Adresse de livraison</h3>
+                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Livraison</h3>
               </div>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
+              <p className="text-sm text-gray-600 whitespace-pre-line">
                 {order.addresses.shipping.formatted}
               </p>
             </div>
 
-            {/* Adresse de facturation */}
             <div className="card p-6">
               <div className="flex items-center gap-2 mb-4">
-                <CreditCard className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Adresse de facturation</h3>
+                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Facturation</h3>
               </div>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
+              <p className="text-sm text-gray-600 whitespace-pre-line">
                 {order.addresses.billing.formatted}
               </p>
             </div>
@@ -201,8 +203,8 @@ export default function OrderDetailPage() {
           {/* Notes */}
           {order.order.notes && (
             <div className="card p-6">
-              <h3 className="font-semibold mb-2">Notes de commande</h3>
-              <p className="text-sm text-muted-foreground">{order.order.notes}</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Notes</h3>
+              <p className="text-sm text-gray-600">{order.order.notes}</p>
             </div>
           )}
         </div>
@@ -210,13 +212,8 @@ export default function OrderDetailPage() {
         {/* Sidebar - Timeline */}
         <div className="lg:col-span-1">
           <div className="card p-6 sticky top-4">
-            <h3 className="font-semibold mb-6">Suivi de commande</h3>
-            <OrderTimeline
-              currentStatus={order.order.status}
-              createdAt={order.order.createdAt}
-              shippedAt={order.order.shippedAt}
-              deliveredAt={order.order.deliveredAt}
-            />
+            <h3 className="font-semibold text-gray-900 mb-6">Suivi</h3>
+            <ConnectedOrderTimeline orderNumber={order.order.orderNumber} />
           </div>
         </div>
       </div>
@@ -231,12 +228,12 @@ export default function OrderDetailPage() {
         onConfirm={handleCancelOrder}
         loading={isCancelling}
       >
-        <p className="text-muted-foreground">
+        <p className="text-gray-600 mb-4">
           Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.
         </p>
-        <div className="mt-4 p-4 bg-warning/10 rounded-lg border border-warning/20">
-          <p className="text-sm text-warning">
-            Si vous avez déjà effectué le paiement, vous serez remboursé sous 5-7 jours ouvrés.
+        <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <p className="text-sm text-orange-700">
+            Si vous avez déjà payé, vous serez remboursé sous 5-7 jours ouvrés.
           </p>
         </div>
       </Modal>

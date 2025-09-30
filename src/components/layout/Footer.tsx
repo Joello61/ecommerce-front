@@ -1,9 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone } from 'lucide-react'
-import { APP_CONFIG, CONTACT, SOCIAL_LINKS } from '@/lib/constants'
 
 const footerLinks = {
   shop: [
@@ -32,72 +30,89 @@ const footerLinks = {
   ],
 }
 
-const socialIcons = [
-  { icon: Facebook, href: SOCIAL_LINKS.facebook, label: 'Facebook' },
-  { icon: Twitter, href: SOCIAL_LINKS.twitter, label: 'Twitter' },
-  { icon: Instagram, href: SOCIAL_LINKS.instagram, label: 'Instagram' },
-  { icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: 'LinkedIn' },
+const socialLinks = [
+  { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
+  { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+  { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
 ]
 
-export function Footer() {
+interface FooterProps {
+  companyName?: string
+  description?: string
+  email?: string
+  phone?: string
+}
+
+export function Footer({
+  companyName = 'ShopName',
+  description = 'Votre boutique en ligne de confiance pour des produits de qualité.',
+  email = 'contact@shopname.com',
+  phone = '+33 1 23 45 67 89'
+}: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="mt-auto border-t border-border bg-muted/30">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
-          {/* À propos */}
-          <div className="lg:col-span-2">
+    <footer className="mt-auto border-t border-gray-200 bg-gray-50">
+      <div className="container py-12">
+        {/* Grid principal */}
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-12">
+          {/* À propos - 2 colonnes sur large */}
+          <div className="lg:col-span-4">
             <Link href="/" className="inline-block mb-4">
-              <motion.span
-                whileHover={{ scale: 1.05 }}
-                className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
-              >
-                {APP_CONFIG.name}
-              </motion.span>
+              <span className="text-2xl font-bold text-primary">
+                {companyName}
+              </span>
             </Link>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              {APP_CONFIG.description}
+            <p className="text-sm text-gray-600 mb-4 max-w-sm">
+              {description}
             </p>
             
-            {/* Contact rapide */}
-            <div className="space-y-2 text-sm">
-              <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Mail className="h-4 w-4" />
-                {CONTACT.email}
+            {/* Contact */}
+            <div className="space-y-2 text-sm mb-4">
+              <a 
+                href={`mailto:${email}`} 
+                className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+              >
+                <Mail className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{email}</span>
               </a>
-              <a href={`tel:${CONTACT.phone}`} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Phone className="h-4 w-4" />
-                {CONTACT.phone}
+              <a 
+                href={`tel:${phone.replace(/\s/g, '')}`} 
+                className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+              >
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                {phone}
               </a>
             </div>
 
             {/* Réseaux sociaux */}
-            <div className="flex gap-2 mt-4">
-              {socialIcons.map(({ icon: Icon, href, label }) => href && (
-                <motion.a
+            <div className="flex gap-2">
+              {socialLinks.map(({ icon: Icon, href, label }) => (
+                <a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors"
+                  className="p-2 rounded-lg bg-white border border-gray-200 hover:border-primary hover:text-primary transition-colors"
                   aria-label={label}
                 >
-                  <Icon className="h-4 w-4" />
-                </motion.a>
+                  <Icon className="w-4 h-4" />
+                </a>
               ))}
             </div>
           </div>
 
-          {/* Liens */}
-          <div>
-            <h3 className="font-semibold mb-4">Boutique</h3>
+          {/* Liens - 3 colonnes sur large */}
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-gray-900 mb-4">Boutique</h3>
             <ul className="space-y-2">
               {footerLinks.shop.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link 
+                    href={link.href} 
+                    className="text-sm text-gray-600 hover:text-primary transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -105,12 +120,15 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Mon compte</h3>
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-gray-900 mb-4">Mon compte</h3>
             <ul className="space-y-2">
               {footerLinks.account.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link 
+                    href={link.href} 
+                    className="text-sm text-gray-600 hover:text-primary transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -118,22 +136,31 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Aide</h3>
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-gray-900 mb-4">Aide</h3>
             <ul className="space-y-2">
               {footerLinks.help.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link 
+                    href={link.href} 
+                    className="text-sm text-gray-600 hover:text-primary transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-            <h3 className="font-semibold mt-6 mb-4">Légal</h3>
+          </div>
+
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-gray-900 mb-4">Légal</h3>
             <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link 
+                    href={link.href} 
+                    className="text-sm text-gray-600 hover:text-primary transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -143,9 +170,9 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>
-            © {currentYear} {APP_CONFIG.name}. Tous droits réservés.
+        <div className="mt-12 pt-8 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-600">
+            © {currentYear} {companyName}. Tous droits réservés.
           </p>
         </div>
       </div>

@@ -1,4 +1,3 @@
-// src/hooks/useCart.ts
 import { useCallback } from 'react'
 import { 
   useCartStore,

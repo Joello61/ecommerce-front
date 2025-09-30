@@ -1,4 +1,3 @@
-// src/hooks/useAuth.ts
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
@@ -47,7 +46,7 @@ export const useAuth = (): UseAuthReturn => {
       await authStore.login(credentials)
       showToast.success('Connexion réussie', 'Bienvenue !')
     } catch (error) {
-      // ❌ NE PAS relancer l'erreur ici
+      // ne pas relancer l'erreur ici
       console.error('Login error:', error)
     }
   }, [authStore])
@@ -85,7 +84,6 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [authStore])
 
-  // ✅ CORRECTION : hasRole doit utiliser directement user
   const hasRole = useCallback((role: string) => {
     return user?.roles.includes(role) ?? false
   }, [user])
