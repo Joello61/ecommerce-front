@@ -1,43 +1,37 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
-import type { ResetPasswordRequest } from '@/types'
 
 interface ResetPasswordFormProps {
   token: string
-  onSubmit: (data: ResetPasswordRequest) => Promise<void>
   onSuccess?: () => void
-  isLoading?: boolean
-  error?: string | null
   className?: string
 }
 
-export function ResetPasswordForm({ 
-  token, 
-  onSubmit, 
-  onSuccess,
-  isLoading = false,
-  error: externalError,
-  className 
-}: ResetPasswordFormProps) {
+export function ResetPasswordForm({ token, onSuccess, className }: ResetPasswordFormProps) {
+  const router = useRouter()
+  const resetPassword = useAuthStore(state => state.resetPassword)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  const clearError = useAuthStore(state => state.clearError)
+
   const [formData, setFormData] = useState({
     password: '',
     passwordConfirm: '',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [validationError, setValidationError] = useState('')
-
-  const error = externalError || submitError
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    if (submitError) setSubmitError(null)
+    if (error) clearError()
     if (validationError) setValidationError('')
   }
 
@@ -83,15 +77,22 @@ export function ResetPasswordForm({
     if (!validate()) return
 
     try {
-      await onSubmit({
+      await resetPassword({
         token,
         password: formData.password,
         passwordConfirm: formData.passwordConfirm,
       })
       setSuccess(true)
-      onSuccess?.()
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Erreur lors de la réinitialisation')
+      
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        setTimeout(() => {
+          router.push('/login')
+        }, 3000)
+      }
+    } catch {
+      // L'erreur est déjà dans le store
     }
   }
 
@@ -106,7 +107,7 @@ export function ResetPasswordForm({
           Votre mot de passe a été modifié avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
         </p>
         <button
-          onClick={() => window.location.href = '/login'}
+          onClick={() => router.push('/login')}
           className="btn-primary w-full"
         >
           Se connecter
@@ -157,13 +158,12 @@ export function ResetPasswordForm({
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Afficher/masquer le mot de passe"
+              tabIndex={-1}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Force du mot de passe */}
           {formData.password && (
             <div className="mt-2">
               <div className="flex gap-1 mb-1">
@@ -205,7 +205,7 @@ export function ResetPasswordForm({
               type="button"
               onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Afficher/masquer le mot de passe"
+              tabIndex={-1}
             >
               {showPasswordConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>

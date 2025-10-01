@@ -4,30 +4,24 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingBag, ArrowRight } from 'lucide-react'
+import { useCartStore } from '@/store/cartStore'
+import { useUIStore } from '@/store/uiStore'
 import { CartItem } from './CartItem'
 import { CartSummary } from './CartSummary'
-import type { CartSummary as Cart } from '@/types'
 
-interface CartDrawerProps {
-  isOpen: boolean
-  onClose: () => void
-  cart: Cart | null
-  isLoading?: boolean
-  onUpdateQuantity?: (itemId: number, quantity: number) => Promise<void>
-  onRemoveItem?: (itemId: number) => Promise<void>
-}
-
-export function CartDrawer({ 
-  isOpen, 
-  onClose, 
-  cart, 
-  isLoading = false,
-  onUpdateQuantity,
-  onRemoveItem 
-}: CartDrawerProps) {
+export function CartDrawer() {
   const router = useRouter()
+  
+  // Store selectors
+  const cart = useCartStore(state => state.cart)
+  const isLoading = useCartStore(state => state.isLoading)
+  
+  const isOpen = useUIStore(state => state.isCartDrawerOpen)
+  const closeCartDrawer = useUIStore(state => state.closeCartDrawer)
+  
   const isEmpty = !cart || cart.items.length === 0
 
+  // Lock body scroll when open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -39,23 +33,24 @@ export function CartDrawer({
     }
   }, [isOpen])
 
+  // ESC key handler
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose()
+        closeCartDrawer()
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+  }, [isOpen, closeCartDrawer])
 
   const handleCheckout = () => {
-    onClose()
+    closeCartDrawer()
     router.push('/checkout')
   }
 
   const handleViewCart = () => {
-    onClose()
+    closeCartDrawer()
     router.push('/cart')
   }
 
@@ -63,17 +58,17 @@ export function CartDrawer({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay avec animation */}
+          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            onClick={onClose}
+            onClick={closeCartDrawer}
             className="fixed inset-0 bg-black/50 z-50"
           />
 
-          {/* Drawer avec animation slide */}
+          {/* Drawer */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -90,7 +85,7 @@ export function CartDrawer({
                 </h2>
               </div>
               <button
-                onClick={onClose}
+                onClick={closeCartDrawer}
                 className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
                 aria-label="Fermer"
               >
@@ -98,7 +93,7 @@ export function CartDrawer({
               </button>
             </div>
 
-            {/* Contenu */}
+            {/* Content */}
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
                 <div className="p-6 space-y-4">
@@ -128,7 +123,7 @@ export function CartDrawer({
                   </p>
                   <button
                     onClick={() => {
-                      onClose()
+                      closeCartDrawer()
                       router.push('/products')
                     }}
                     className="btn-primary"
@@ -150,19 +145,14 @@ export function CartDrawer({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <CartItem 
-                        item={item}
-                        onUpdateQuantity={onUpdateQuantity}
-                        onRemove={onRemoveItem}
-                        isLoading={isLoading}
-                      />
+                      <CartItem item={item} />
                     </motion.div>
                   ))}
                 </motion.div>
               )}
             </div>
 
-            {/* Footer avec résumé */}
+            {/* Footer */}
             {!isEmpty && cart && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -170,7 +160,7 @@ export function CartDrawer({
                 transition={{ delay: 0.2 }}
                 className="border-t border-gray-200 p-6 space-y-4"
               >
-                <CartSummary cart={cart} compact />
+                <CartSummary compact />
                 
                 <div className="space-y-2">
                   <button

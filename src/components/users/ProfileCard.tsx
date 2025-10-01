@@ -1,34 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Mail, Calendar, Shield, Camera, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { UserProfile } from '@/types'
+import { useUserStore, useUserProfile } from '@/store/userStore'
+import { showToast } from '@/store/uiStore'
+import { cn, formatDate, getImageUrl } from '@/lib/utils'
 
 interface ProfileCardProps {
-  profile: UserProfile
-  onUpdateAvatar?: (file: File) => Promise<void>
   editable?: boolean
   className?: string
 }
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-}
-
-const getImageUrl = (avatarName: string) => {
-  return `/api/uploads/${avatarName}`
-}
-
-export function ProfileCard({ profile, onUpdateAvatar, editable = false, className }: ProfileCardProps) {
+export function ProfileCard({ editable = false, className }: ProfileCardProps) {
+  const profile = useUserProfile()
+  const fetchProfile = useUserStore(state => state.fetchProfile)
+  const uploadAvatar = useUserStore(state => state.uploadAvatar)
+  const isProfileLoading = useUserStore(state => state.isProfileLoading)
+  
   const [isUploading, setIsUploading] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!profile) {
+      fetchProfile()
+    }
+  }, [profile, fetchProfile])
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !onUpdateAvatar) return
+    if (!file) return
 
     // Validation
     if (file.size > 5 * 1024 * 1024) {
@@ -44,13 +45,23 @@ export function ProfileCard({ profile, onUpdateAvatar, editable = false, classNa
     setIsUploading(true)
 
     try {
-      await onUpdateAvatar(file)
+      await uploadAvatar(file)
+      showToast.success('Photo de profil mise à jour')
     } catch (error) {
       setAvatarError('Erreur lors de l\'upload')
+      showToast.error('Erreur lors de la mise à jour')
       console.log('Avatar upload error:', error)
     } finally {
       setIsUploading(false)
     }
+  }
+
+  if (isProfileLoading || !profile) {
+    return (
+      <div className={cn('card p-6', className)}>
+        <p className="text-gray-600">Chargement du profil...</p>
+      </div>
+    )
   }
 
   return (
@@ -61,7 +72,7 @@ export function ProfileCard({ profile, onUpdateAvatar, editable = false, classNa
           <div className="relative w-24 h-24 sm:w-32 sm:h-32">
             {profile.avatarName ? (
               <Image
-                src={getImageUrl(profile.avatarName)}
+                src={getImageUrl('avatar',profile.avatarName)}
                 alt={profile.fullName}
                 fill
                 className="rounded-full object-cover border-4 border-gray-100"
@@ -69,7 +80,8 @@ export function ProfileCard({ profile, onUpdateAvatar, editable = false, classNa
             ) : (
               <div className="w-full h-full rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center border-4 border-gray-100">
                 <span className="text-3xl sm:text-4xl font-bold text-white">
-                  {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                  {(profile.firstName?.charAt(0) || '?').toUpperCase()}
+                  {(profile.lastName?.charAt(0) || '?').toUpperCase()}
                 </span>
               </div>
             )}
@@ -91,13 +103,6 @@ export function ProfileCard({ profile, onUpdateAvatar, editable = false, classNa
                 )}
               </label>
             )}
-
-            {/* Badge vérifié */}
-            {profile.isVerified && (
-              <div className="absolute -top-1 -right-1 p-1 bg-success rounded-full shadow-md">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
-            )}
           </div>
 
           {avatarError && (
@@ -111,7 +116,7 @@ export function ProfileCard({ profile, onUpdateAvatar, editable = false, classNa
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{profile.fullName}</h2>
             <div className="flex flex-wrap gap-2">
-              {profile.roles.map((role) => (
+              {profile.roles?.map((role) => (
                 <span key={role} className="badge bg-primary/10 text-primary">
                   {role.replace('ROLE_', '')}
                 </span>

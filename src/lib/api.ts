@@ -103,10 +103,11 @@ class ApiClient {
     console.error(`API Error: ${error.response?.status} ${error.config?.url}`)
     
     if (error.response?.status === 401) {
-      // Erreur d'authentification - rediriger vers login
+      /*// Erreur d'authentification - rediriger vers login
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
-      }
+      }*/
+       console.debug('401 Unauthorized - token invalide ou expiré')
       return Promise.reject(this.createApiError(error))
     }
 

@@ -6,7 +6,9 @@ import type {
   UserStats,
   Address,
   AddressRequest,
-  AddressListResponse
+  AddressListResponse,
+  Order,
+  CartProfileResponse
 } from '@/types'
 
 class UserService {
@@ -14,9 +16,31 @@ class UserService {
    * Récupération du profil utilisateur complet
    */
   async getProfile(): Promise<UserProfile> {
-    const response = await apiClient.get<UserProfile>('/users/profile')
-    return response.data
+  const response = await apiClient.get<{
+    user: User
+    orders: Order[]
+    addresses: Address[]
+    cart: CartProfileResponse
+  }>('/users/profile')
+  
+  const { user, orders, addresses } = response.data
+  
+  // Transformer en UserProfile avec les compteurs
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    fullName: user.fullName,
+    avatarName: user.avatarName,
+    roles: user.roles,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    orders: orders.length,      // Nombre de commandes
+    addresses: addresses.length // Nombre d'adresses
   }
+}
 
   /**
    * Mise à jour du profil utilisateur

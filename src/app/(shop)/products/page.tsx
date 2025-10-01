@@ -2,15 +2,27 @@
 
 import { useEffect, useState } from 'react'
 import { useProducts } from '@/hooks/useProducts'
-import { ConnectedProductGrid } from '@/components/features/products/ConnectedProductGrid'
-import { ConnectedProductFilters } from '@/components/features/products/ConnectedProductFilters'
-import { ConnectedProductSearch } from '@/components/features/products/ConnectedProductSearch'
 import { cn } from '@/lib/utils'
+import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductSearch } from '@/components/products/ProductSearch'
+import { ProductGrid } from '@/components/products/ProductGrid'
 
 type SortOption = 'name:asc' | 'name:desc' | 'price:asc' | 'price:desc' | 'created_at:desc'
 
 export default function ProductsPage() {
-  const { products, isLoading, pagination, filters, fetchProducts, fetchCategories, setFilters, setPage } = useProducts()
+  const { 
+    products, 
+    isLoading, 
+    pagination, 
+    filters, 
+    categories, // ← Ajouter ceci
+    fetchProducts, 
+    fetchCategories, 
+    setFilters, 
+    clearFilters, // ← Ajouter ceci pour onReset
+    setPage 
+  } = useProducts()
+  
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
@@ -41,7 +53,12 @@ export default function ProductsPage() {
           {/* Filtres sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-4">
-              <ConnectedProductFilters />
+              <ProductFilters 
+                categories={categories}
+                currentFilters={filters}
+                onFilterChange={setFilters}
+                onReset={clearFilters}
+              />
             </div>
           </aside>
 
@@ -50,7 +67,7 @@ export default function ProductsPage() {
             {/* Barre d'outils */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <ConnectedProductSearch placeholder="Rechercher un produit..." showResults={false} />
+                <ProductSearch placeholder="Rechercher un produit..." showResults={false} />
               </div>
 
               <div className="flex gap-2">
@@ -78,12 +95,17 @@ export default function ProductsPage() {
             {/* Filtres mobile */}
             {showFilters && (
               <div className="lg:hidden">
-                <ConnectedProductFilters />
+                <ProductFilters 
+                  categories={categories}
+                  currentFilters={filters}
+                  onFilterChange={setFilters}
+                  onReset={clearFilters}
+                />
               </div>
             )}
 
             {/* Grille produits */}
-            <ConnectedProductGrid
+            <ProductGrid
               products={products}
               loading={isLoading}
               columns={3}

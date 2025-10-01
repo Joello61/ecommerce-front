@@ -3,59 +3,58 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingCart, Heart } from 'lucide-react'
-import { cn, formatPrice } from '@/lib/utils'
+import { useCartStore } from '@/store/cartStore'
+import { showToast } from '@/store/uiStore'
+import { cn, formatPrice, getImageUrl } from '@/lib/utils'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
   product: Product
   className?: string
   showQuickActions?: boolean
-  onAddToCart?: (productId: number) => void
-  onAddToWishlist?: (productId: number) => void
-  inCart?: boolean
-}
-
-const getImageUrl = (imageName: string) => {
-  return `/api/uploads/${imageName}`
 }
 
 export function ProductCard({ 
   product, 
   className, 
-  showQuickActions = true,
-  onAddToCart,
-  onAddToWishlist,
-  inCart = false
+  showQuickActions = true
 }: ProductCardProps) {
+  const addToCart = useCartStore(state => state.addToCart)
+  const isProductInCart = useCartStore(state => state.isProductInCart)
+  
+  const inCart = isProductInCart(product.id)
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (onAddToCart) {
-      onAddToCart(product.id)
+    
+    try {
+      await addToCart(product.id, 1)
+      showToast.success('Produit ajouté au panier')
+    } catch (error) {
+      showToast.error('Impossible d\'ajouter le produit')
+      console.error('Error adding to cart:', error)
     }
   }
 
   const handleAddToWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (onAddToWishlist) {
-      onAddToWishlist(product.id)
-    }
+    showToast.info('Fonctionnalité bientôt disponible')
   }
 
   return (
     <Link href={`/products/${product.slug}`} className={cn('block h-full', className)}>
-      <div className="card-product h-full flex flex-col">
+      <div className="card-product h-full flex flex-col group">
         {/* Image */}
         <div className="relative aspect-square mb-4 overflow-hidden rounded-lg bg-gray-100">
           {product.imageName ? (
             <Image
-              src={getImageUrl(product.imageName)}
+              src={getImageUrl('product', product.imageName)}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
@@ -89,7 +88,6 @@ export function ProductCard({
                   (!product.isInStock || inCart) && 'opacity-50 cursor-not-allowed'
                 )}
                 title={inCart ? 'Dans le panier' : 'Ajouter au panier'}
-                aria-label="Ajouter au panier"
               >
                 <ShoppingCart className="w-4 h-4" />
               </button>
@@ -98,7 +96,6 @@ export function ProductCard({
                 onClick={handleAddToWishlist}
                 className="p-2 rounded-full bg-white shadow-lg hover:bg-danger hover:text-white transition-colors"
                 title="Ajouter aux favoris"
-                aria-label="Ajouter aux favoris"
               >
                 <Heart className="w-4 h-4" />
               </button>
@@ -111,7 +108,7 @@ export function ProductCard({
           <p className="text-sm text-gray-600 mb-1">
             {product.category.name}
           </p>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-primary transition-colors">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
           

@@ -2,26 +2,31 @@
 
 import { useState } from 'react'
 import { Save, X, AlertCircle } from 'lucide-react'
+import { useUserStore } from '@/store/userStore'
+import { showToast } from '@/store/uiStore'
 import Input from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
 import type { Address, AddressRequest } from '@/types'
 
 interface AddressFormProps {
   address?: Address
-  onSubmit: (data: AddressRequest) => Promise<void>
+  onSuccess?: () => void
   onCancel?: () => void
-  isLoading?: boolean
   className?: string
 }
 
-export function AddressForm({ address, onSubmit, onCancel, isLoading, className }: AddressFormProps) {
+export function AddressForm({ address, onSuccess, onCancel, className }: AddressFormProps) {
+  const createAddress = useUserStore(state => state.createAddress)
+  const updateAddress = useUserStore(state => state.updateAddress)
+  const isUpdating = useUserStore(state => state.isUpdating)
+
   const [formData, setFormData] = useState<AddressRequest>({
     firstName: address?.firstName || '',
     lastName: address?.lastName || '',
     street: address?.street || '',
     city: address?.city || '',
     zipCode: address?.zipCode || '',
-    country: address?.country || 'France',
+    country: address?.country || 'FR',
     phone: address?.phone || '',
     isDefault: address?.isDefault || false,
   })
@@ -30,12 +35,7 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
 
   const handleInputChange = (value: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-
+    setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -98,7 +98,15 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
     if (!validate()) return
 
     try {
-      await onSubmit(formData)
+      if (address) {
+        await updateAddress(address.id, formData)
+        showToast.success('Adresse mise à jour avec succès')
+      } else {
+        await createAddress(formData)
+        showToast.success('Adresse ajoutée avec succès')
+      }
+      
+      onSuccess?.()
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement')
     }
@@ -118,7 +126,6 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
       )}
 
       <div className="space-y-4">
-        {/* Nom et Prénom */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Prénom"
@@ -126,7 +133,7 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
             value={formData.firstName}
             onChange={handleInputChange}
             error={errors.firstName}
-            disabled={isLoading}
+            disabled={isUpdating}
             required
           />
           <Input
@@ -135,12 +142,11 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
             value={formData.lastName}
             onChange={handleInputChange}
             error={errors.lastName}
-            disabled={isLoading}
+            disabled={isUpdating}
             required
           />
         </div>
 
-        {/* Rue */}
         <Input
           label="Adresse"
           name="street"
@@ -148,11 +154,10 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
           onChange={handleInputChange}
           placeholder="Numéro et nom de rue"
           error={errors.street}
-          disabled={isLoading}
+          disabled={isUpdating}
           required
         />
 
-        {/* Code postal et Ville */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input
             label="Code postal"
@@ -162,7 +167,7 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
             placeholder="75001"
             maxLength={5}
             error={errors.zipCode}
-            disabled={isLoading}
+            disabled={isUpdating}
             required
           />
           <div className="sm:col-span-2">
@@ -173,13 +178,12 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
               onChange={handleInputChange}
               placeholder="Paris"
               error={errors.city}
-              disabled={isLoading}
+              disabled={isUpdating}
               required
             />
           </div>
         </div>
 
-        {/* Pays */}
         <div>
           <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1.5">
             Pays *
@@ -190,20 +194,19 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
             value={formData.country}
             onChange={handleSelectChange}
             className={cn('input', errors.country && 'border-danger')}
-            disabled={isLoading}
+            disabled={isUpdating}
           >
-            <option value="France">France</option>
-            <option value="Belgique">Belgique</option>
-            <option value="Suisse">Suisse</option>
-            <option value="Luxembourg">Luxembourg</option>
-            <option value="Canada">Canada</option>
+            <option value="FR">France</option>
+            <option value="BE">Belgique</option>
+            <option value="CH">Suisse</option>
+            <option value="LU">Luxembourg</option>
+            <option value="CA">Canada</option>
           </select>
           {errors.country && (
             <p className="mt-1.5 text-sm text-danger">{errors.country}</p>
           )}
         </div>
 
-        {/* Téléphone */}
         <Input
           label="Téléphone"
           name="phone"
@@ -212,10 +215,9 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
           onChange={handleInputChange}
           placeholder="+33 6 12 34 56 78"
           error={errors.phone}
-          disabled={isLoading}
+          disabled={isUpdating}
         />
 
-        {/* Par défaut */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -223,19 +225,18 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
             checked={formData.isDefault}
             onChange={handleCheckboxChange}
             className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-            disabled={isLoading}
+            disabled={isUpdating}
           />
           <span className="text-sm text-gray-700">Définir comme adresse par défaut</span>
         </label>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            disabled={isLoading}
+            disabled={isUpdating}
             className="btn-outline flex-1"
           >
             <X className="w-4 h-4" />
@@ -244,11 +245,11 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading, className 
         )}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isUpdating}
           className="btn-primary flex-1"
         >
           <Save className="w-4 h-4" />
-          {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+          {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
         </button>
       </div>
     </form>

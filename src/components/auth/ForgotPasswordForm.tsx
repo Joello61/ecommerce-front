@@ -1,34 +1,41 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 
 interface ForgotPasswordFormProps {
-  onSubmit: (email: string) => Promise<void>
   onSuccess?: () => void
   onCancel?: () => void
   className?: string
 }
 
-export function ForgotPasswordForm({ onSubmit, onSuccess, onCancel, className }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ onSuccess, onCancel, className }: ForgotPasswordFormProps) {
+  const router = useRouter()
+  const forgotPassword = useAuthStore(state => state.forgotPassword)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  const clearError = useAuthStore(state => state.clearError)
+
   const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [validationError, setValidationError] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value)
-    if (error) setError(null)
+    if (error) clearError()
+    if (validationError) setValidationError('')
   }
 
   const validate = () => {
     if (!email) {
-      setError('L\'email est requis')
+      setValidationError('L\'email est requis')
       return false
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Email invalide')
+      setValidationError('Email invalide')
       return false
     }
     return true
@@ -39,17 +46,19 @@ export function ForgotPasswordForm({ onSubmit, onSuccess, onCancel, className }:
     
     if (!validate()) return
 
-    setIsLoading(true)
-    setError(null)
-
     try {
-      await onSubmit(email)
+      await forgotPassword({ email })
       setSuccess(true)
-      onSuccess?.()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi')
-    } finally {
-      setIsLoading(false)
+      
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        setTimeout(() => {
+          router.push('/login')
+        }, 5000)
+      }
+    } catch {
+      // L'erreur est déjà dans le store
     }
   }
 
@@ -78,7 +87,6 @@ export function ForgotPasswordForm({ onSubmit, onSuccess, onCancel, className }:
 
   return (
     <form onSubmit={handleSubmit} className={cn('p-8', className)}>
-      
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
           <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
@@ -98,12 +106,15 @@ export function ForgotPasswordForm({ onSubmit, onSuccess, onCancel, className }:
               id="email"
               value={email}
               onChange={handleChange}
-              className={cn('input pl-10', error && 'border-danger')}
+              className={cn('input pl-10', (error || validationError) && 'border-danger')}
               placeholder="vous@exemple.com"
               disabled={isLoading}
               autoFocus
             />
           </div>
+          {validationError && (
+            <p className="mt-1.5 text-sm text-danger">{validationError}</p>
+          )}
         </div>
 
         <button

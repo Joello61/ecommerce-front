@@ -1,16 +1,15 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
-import { ConnectedCartSummary } from '@/components/features/cart/ConnectedCartSummary'
-import { ConnectedCartItem } from '@/components/features/cart/ConnectedCartItem'
-import { useCart } from '@/components/providers/CartProvider'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Panier | Sunset Commerce',
-  description: 'Votre panier d\'achats'
-}
+import Link from 'next/link'
+import { useCartStore, useCart, useIsCartEmpty } from '@/store/cartStore'
+import { CartSummary } from '@/components/cart/CartSummary'
+import { CartItem } from '@/components/cart/CartItem'
 
 export default function CartPage() {
-  const { cart, isEmpty, clearCart, isLoading } = useCart()
+  const cart = useCart()
+  const isEmpty = useIsCartEmpty()
+  const isLoading = useCartStore(state => state.isLoading)
+  const clearCart = useCartStore(state => state.clearCart)
 
   const handleClearCart = async () => {
     if (window.confirm('Vider votre panier ?')) {
@@ -19,7 +18,7 @@ export default function CartPage() {
   }
 
   // Panier vide
-  if (isEmpty()) {
+  if (isEmpty) {
     return (
       <div className="container py-16 text-center">
         <div className="max-w-md mx-auto">
@@ -78,7 +77,7 @@ export default function CartPage() {
             </div>
 
             {cart?.items.map((item) => (
-              <ConnectedCartItem key={item.id} item={item} />
+              <CartItem key={item.id} item={item} />
             ))}
 
             <div className="pt-4">
@@ -101,7 +100,7 @@ export default function CartPage() {
                 Résumé
               </h2>
 
-              <ConnectedCartSummary showShipping />
+              <CartSummary showShipping />
 
               <div className="mt-6 space-y-3">
                 <Link href="/checkout" className="btn-primary w-full">

@@ -28,8 +28,13 @@ interface CartState {
   isProductInCart: (productId: number) => boolean
   getProductQuantityInCart: (productId: number) => number
   getCartItemsCount: () => number
+  getItemsCount: () => number // Alias pour compatibilité
   getCartTotal: () => string
   isCartEmpty: () => boolean
+  
+  // Alias pour composants (compatibilité)
+  updateQuantity: (itemId: number, quantity: number) => Promise<void>
+  removeItem: (itemId: number) => Promise<void>
   
   // Actions internes
   setCart: (cart: CartSummary | null) => void
@@ -80,7 +85,7 @@ export const useCartStore = create<CartState>()(
           } catch (error) {
             const errorMessage = getErrorMessage(error)
             set({ 
-              cart: currentCart, // Restaurer l'état précédent
+              cart: currentCart,
               isLoading: false, 
               error: errorMessage 
             })
@@ -148,7 +153,6 @@ export const useCartStore = create<CartState>()(
               validationErrors: validation.errors || []
             })
             
-            // Mettre à jour le panier si nécessaire
             if (validation.cartSummary) {
               const currentCart = get().cart
               if (currentCart) {
@@ -193,7 +197,6 @@ export const useCartStore = create<CartState>()(
           
           try {
             await cartService.quickAddToCart(productId, quantity)
-            // Rafraîchir le panier après ajout rapide
             await get().fetchCart()
           } catch (error) {
             const errorMessage = getErrorMessage(error)
@@ -224,6 +227,11 @@ export const useCartStore = create<CartState>()(
           return cart?.cart.totalItems || 0
         },
 
+        getItemsCount: () => {
+          const cart = get().cart
+          return cart?.cart.totalItems || 0
+        },
+
         getCartTotal: () => {
           const cart = get().cart
           return cart?.cart.totalPrice || '0.00'
@@ -232,6 +240,15 @@ export const useCartStore = create<CartState>()(
         isCartEmpty: () => {
           const cart = get().cart
           return cart?.cart.isEmpty ?? true
+        },
+
+        // Alias pour compatibilité
+        updateQuantity: async (itemId: number, quantity: number) => {
+          return get().updateCartItem(itemId, quantity)
+        },
+
+        removeItem: async (itemId: number) => {
+          return get().removeFromCart(itemId)
         },
 
         // Actions internes
@@ -265,7 +282,7 @@ export const useCartStore = create<CartState>()(
   )
 )
 
-// Sélecteurs pour optimiser les re-renders
+// Sélecteurs optimisés
 export const useCart = () => useCartStore((state) => state.cart)
 export const useCartItems = () => useCartStore((state) => state.cart?.items || [])
 export const useCartSummary = () => useCartStore((state) => state.cart?.cart)
@@ -275,20 +292,10 @@ export const useCartItemsCount = () => useCartStore((state) => state.getCartItem
 export const useCartTotal = () => useCartStore((state) => state.getCartTotal())
 export const useIsCartEmpty = () => useCartStore((state) => state.isCartEmpty())
 
-// Hook pour vérifier si un produit est dans le panier
 export const useIsProductInCart = (productId: number) => {
   return useCartStore((state) => state.isProductInCart(productId))
 }
 
-// Hook pour récupérer la quantité d'un produit dans le panier
 export const useProductQuantityInCart = (productId: number) => {
   return useCartStore((state) => state.getProductQuantityInCart(productId))
-}
-
-// Actions pour usage direct
-export const cartActions = {
-  fetchCart: () => useCartStore.getState().fetchCart,
-  addToCart: () => useCartStore.getState().addToCart,
-  clearCart: () => useCartStore.getState().clearCart,
-  clearError: () => useCartStore.getState().clearError,
 }

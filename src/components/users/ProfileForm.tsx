@@ -2,27 +2,41 @@
 
 import { useState } from 'react'
 import { Mail, Save, X, AlertCircle } from 'lucide-react'
+import { useUserStore, useUserProfile } from '@/store/userStore'
+import { useAuthStore } from '@/store/authStore'
+import { showToast } from '@/store/uiStore'
 import Input from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
-import type { UserProfile, UpdateProfileRequest } from '@/types'
+import type { UpdateProfileRequest } from '@/types'
 
 interface ProfileFormProps {
-  profile: UserProfile
-  onSubmit: (data: UpdateProfileRequest) => Promise<void>
+  onSuccess?: () => void
   onCancel?: () => void
-  isLoading?: boolean
   className?: string
 }
 
-export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className }: ProfileFormProps) {
+export function ProfileForm({ onSuccess, onCancel, className }: ProfileFormProps) {
+  const profile = useUserProfile()
+  const updateProfile = useUserStore(state => state.updateProfile)
+  const getCurrentUser = useAuthStore(state => state.getCurrentUser)
+  const isUpdating = useUserStore(state => state.isUpdating)
+
   const [formData, setFormData] = useState<UpdateProfileRequest>({
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    email: profile.email,
+    firstName: profile?.firstName || '',
+    lastName: profile?.lastName || '',
+    email: profile?.email || '',
     acceptNewsletter: false,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  if (!profile) {
+    return (
+      <div className="card p-6 text-center text-gray-600">
+        Chargement du profil...
+      </div>
+    )
+  }
 
   const handleInputChange = (value: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target
@@ -64,7 +78,15 @@ export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className 
     if (!validate()) return
 
     try {
-      await onSubmit(formData)
+      await updateProfile(formData)
+      
+      // Rafraîchir l'utilisateur dans le authStore si l'email a changé
+      if (formData.email && formData.email !== profile.email) {
+        await getCurrentUser()
+      }
+      
+      showToast.success('Profil mis à jour avec succès')
+      onSuccess?.()
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour')
     }
@@ -90,29 +112,26 @@ export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className 
       )}
 
       <div className="space-y-4">
-        {/* Prénom */}
         <Input
           label="Prénom"
           name="firstName"
           value={formData.firstName}
           onChange={handleInputChange}
           error={errors.firstName}
-          disabled={isLoading}
+          disabled={isUpdating}
           required
         />
 
-        {/* Nom */}
         <Input
           label="Nom"
           name="lastName"
           value={formData.lastName}
           onChange={handleInputChange}
           error={errors.lastName}
-          disabled={isLoading}
+          disabled={isUpdating}
           required
         />
 
-        {/* Email */}
         <Input
           label="Email"
           name="email"
@@ -122,10 +141,9 @@ export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className 
           leftIcon={<Mail className="w-5 h-5" />}
           helperText="La modification de l'email nécessitera une vérification"
           error={errors.email}
-          disabled={isLoading}
+          disabled={isUpdating}
         />
 
-        {/* Newsletter */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -133,19 +151,18 @@ export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className 
             checked={formData.acceptNewsletter}
             onChange={handleCheckboxChange}
             className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-            disabled={isLoading}
+            disabled={isUpdating}
           />
           <span className="text-sm text-gray-700">Recevoir les offres et nouveautés</span>
         </label>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            disabled={isLoading}
+            disabled={isUpdating}
             className="btn-outline flex-1"
           >
             <X className="w-4 h-4" />
@@ -154,11 +171,11 @@ export function ProfileForm({ profile, onSubmit, onCancel, isLoading, className 
         )}
         <button
           type="submit"
-          disabled={isLoading || !hasChanges()}
+          disabled={isUpdating || !hasChanges()}
           className="btn-primary flex-1"
         >
           <Save className="w-4 h-4" />
-          {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+          {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
         </button>
       </div>
     </form>

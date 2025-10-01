@@ -10,9 +10,6 @@ interface ProductGridProps {
   emptyMessage?: string
   className?: string
   columns?: 2 | 3 | 4
-  onAddToCart?: (productId: number) => void
-  onAddToWishlist?: (productId: number) => void
-  productsInCart?: number[]
 }
 
 export function ProductGrid({ 
@@ -20,10 +17,7 @@ export function ProductGrid({
   loading, 
   emptyMessage = 'Aucun produit trouvé',
   className,
-  columns = 4,
-  onAddToCart,
-  onAddToWishlist,
-  productsInCart = []
+  columns = 4
 }: ProductGridProps) {
   
   const gridClass = {
@@ -63,13 +57,7 @@ export function ProductGrid({
   return (
     <div className={cn('grid gap-6', gridClass, className)}>
       {products.map((product) => (
-        <ProductCard 
-          key={product.id} 
-          product={product}
-          onAddToCart={onAddToCart}
-          onAddToWishlist={onAddToWishlist}
-          inCart={productsInCart.includes(product.id)}
-        />
+        <ProductCard key={product.id} product={product} />
       ))}
     </div>
   )

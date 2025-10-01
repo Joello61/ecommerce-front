@@ -1,9 +1,8 @@
-// ===== ShopHeader.tsx =====
 'use client'
 
-import { useState, useEffect, ReactNode, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ShoppingBag,
@@ -17,64 +16,42 @@ import {
   UserCircle,
   Search,
 } from 'lucide-react'
+import { useAuthStore, useUser, useIsAuthenticated } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
+import { useUIStore } from '@/store/uiStore'
 import { cn } from '@/lib/utils'
-import type { User as UserType } from '@/types'
+import { ProductSearch } from '../products/ProductSearch'
 
-interface ShopHeaderProps {
-  user: UserType | null
-  isAuthenticated: boolean
-  cartItemsCount: number
-  isUserMenuOpen: boolean
-  isMobileMenuOpen: boolean
-  isSearchOpen: boolean
-  onToggleUserMenu: () => void
-  onToggleMobileMenu: () => void
-  onToggleSearch: () => void
-  onCloseUserMenu: () => void
-  onCloseMobileMenu: () => void
-  onLogout: () => void
-  onOpenCart: () => void
-  onNavigate: (path: string) => void
-  searchComponent: ReactNode
-}
-
-export function ShopHeader({
-  user,
-  isAuthenticated,
-  cartItemsCount,
-  isUserMenuOpen,
-  isMobileMenuOpen,
-  isSearchOpen,
-  onToggleUserMenu,
-  onToggleMobileMenu,
-  onToggleSearch,
-  onCloseUserMenu,
-  onCloseMobileMenu,
-  onLogout,
-  onOpenCart,
-  onNavigate,
-  searchComponent,
-}: ShopHeaderProps) {
+export function ShopHeader() {
+  const router = useRouter()
   const pathname = usePathname()
+  
+  // Store selectors
+  const user = useUser()
+  const isAuthenticated = useIsAuthenticated()
+  const logout = useAuthStore(state => state.logout)
+  const cartItemsCount = useCartStore(state => state.getItemsCount())
+  const openCartDrawer = useUIStore(state => state.openCartDrawer)
+  
+  // Local state
   const [scrolled, setScrolled] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  // Debug: Afficher l'état des menus
-  useEffect(() => {
-    console.log('ShopHeader State:', { isUserMenuOpen, isMobileMenuOpen, isSearchOpen })
-  }, [isUserMenuOpen, isMobileMenuOpen, isSearchOpen])
-
+  // Scroll handler
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Gestion des clics extérieurs pour le dropdown
+  // Click outside handler
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        onCloseUserMenu()
+        setIsUserMenuOpen(false)
       }
     }
 
@@ -83,16 +60,39 @@ export function ShopHeader({
         document.addEventListener('mousedown', handleClickOutside)
       }, 0)
       
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
       }
-    }
-  }, [isUserMenuOpen, onCloseUserMenu])
+  }, [isUserMenuOpen])
 
-  // Fermer UNIQUEMENT le menu mobile au changement de route
+  // Close mobile menu on route change
   useEffect(() => {
-    onCloseMobileMenu()
-  }, [pathname, onCloseMobileMenu])
+    setIsMobileMenuOpen(false)
+  }, [pathname])
+
+  // Handlers
+  const handleLogout = async () => {
+    await logout()
+    setIsUserMenuOpen(false)
+    router.push('/')
+  }
+
+  const handleToggleUserMenu = () => {
+    setIsMobileMenuOpen(false)
+    setIsSearchOpen(false)
+    setIsUserMenuOpen(prev => !prev)
+  }
+
+  const handleToggleMobileMenu = () => {
+    setIsUserMenuOpen(false)
+    setIsSearchOpen(false)
+    setIsMobileMenuOpen(prev => !prev)
+  }
+
+  const handleToggleSearch = () => {
+    setIsUserMenuOpen(false)
+    setIsMobileMenuOpen(false)
+    setIsSearchOpen(prev => !prev)
+  }
 
   const navLinks = [
     { href: '/', label: 'Accueil' },
@@ -101,6 +101,8 @@ export function ShopHeader({
     { href: '/about', label: 'À propos' },
     { href: '/contact', label: 'Contact' },
   ]
+
+  const isProfilePage = pathname?.includes('/profile')
 
   return (
     <header
@@ -142,10 +144,7 @@ export function ShopHeader({
           {/* Actions */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                console.log('Search button clicked')
-                onToggleSearch()
-              }}
+              onClick={handleToggleSearch}
               className="lg:hidden p-2 hover:bg-gray-50 rounded-lg transition-colors"
               aria-label="Rechercher"
             >
@@ -153,7 +152,7 @@ export function ShopHeader({
             </button>
 
             <button
-              onClick={() => onNavigate('/wishlist')}
+              onClick={() => router.push('/wishlist')}
               className="p-2 hover:bg-gray-50 rounded-lg transition-colors"
               aria-label="Liste de souhaits"
             >
@@ -161,7 +160,7 @@ export function ShopHeader({
             </button>
 
             <button
-              onClick={onOpenCart}
+              onClick={openCartDrawer}
               className="p-2 hover:bg-gray-50 rounded-lg transition-colors relative"
               aria-label="Panier"
             >
@@ -180,10 +179,7 @@ export function ShopHeader({
             {/* Menu utilisateur */}
             <div className="relative" ref={userMenuRef}>
               <button
-                onClick={() => {
-                  console.log('User button clicked')
-                  onToggleUserMenu()
-                }}
+                onClick={handleToggleUserMenu}
                 className={cn(
                   'p-2 hover:bg-gray-50 rounded-lg transition-colors',
                   isUserMenuOpen && 'bg-gray-100'
@@ -211,26 +207,23 @@ export function ShopHeader({
                         </div>
                         <div className="py-2">
                           <Link
-                            href="/account/profile"
-                            onClick={onCloseUserMenu}
+                            href="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                           >
                             <UserCircle className="h-4 w-4" />
                             Mon profil
                           </Link>
                           <Link
-                            href="/account/orders"
-                            onClick={onCloseUserMenu}
+                            href="/orders"
+                            onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                           >
                             <Package className="h-4 w-4" />
                             Mes commandes
                           </Link>
                           <button
-                            onClick={() => {
-                              onLogout()
-                              onCloseUserMenu()
-                            }}
+                            onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors text-danger text-left"
                           >
                             <LogOut className="h-4 w-4" />
@@ -242,8 +235,8 @@ export function ShopHeader({
                       <div className="p-4 space-y-2">
                         <button
                           onClick={() => {
-                            onNavigate('/login')
-                            onCloseUserMenu()
+                            router.push('/login')
+                            setIsUserMenuOpen(false)
                           }}
                           className="btn-primary w-full"
                         >
@@ -251,8 +244,8 @@ export function ShopHeader({
                         </button>
                         <button
                           onClick={() => {
-                            onNavigate('/register')
-                            onCloseUserMenu()
+                            router.push('/register')
+                            setIsUserMenuOpen(false)
                           }}
                           className="btn-outline w-full"
                         >
@@ -267,10 +260,7 @@ export function ShopHeader({
 
             {/* Bouton menu mobile */}
             <button
-              onClick={() => {
-                console.log('Mobile menu button clicked')
-                onToggleMobileMenu()
-              }}
+              onClick={handleToggleMobileMenu}
               className={cn(
                 'lg:hidden p-2 hover:bg-gray-50 rounded-lg transition-colors',
                 isMobileMenuOpen && 'bg-gray-100'
@@ -283,9 +273,14 @@ export function ShopHeader({
           </div>
         </div>
 
-        <div className="hidden lg:block pb-4">
-          <div className="max-w-2xl mx-auto">{searchComponent}</div>
+        {/* Barre de recherche desktop */}
+        {isProfilePage ? null : (
+          <div className="hidden lg:block pb-4">
+          <div className="max-w-2xl mx-auto">
+            <ProductSearch />
+          </div>
         </div>
+        )}
       </div>
 
       {/* Barre de recherche mobile */}
@@ -297,7 +292,9 @@ export function ShopHeader({
             exit={{ height: 0, opacity: 0 }}
             className="lg:hidden overflow-hidden border-t border-gray-200"
           >
-            <div className="container py-4">{searchComponent}</div>
+            <div className="container py-4">
+              <ProductSearch />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -316,7 +313,7 @@ export function ShopHeader({
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={onCloseMobileMenu}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     'block px-4 py-3 rounded-lg transition-colors',
                     pathname === link.href

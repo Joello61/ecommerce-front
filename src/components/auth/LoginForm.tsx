@@ -1,28 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { LoginCredentials } from '@/types'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { cn } from '@/lib/utils'
 
 interface LoginFormProps {
-  onSubmit: (credentials: LoginCredentials) => Promise<void>
-  onSuccess?: () => void
-  onError?: (error: string) => void
-  isLoading?: boolean
-  error?: string | null
+  redirectTo?: string
   className?: string
 }
 
-export function LoginForm({ 
-  onSubmit, 
-  onSuccess, 
-  onError, 
-  isLoading = false,
-  error: externalError,
-  className 
-}: LoginFormProps) {
+export function LoginForm({ redirectTo = '/', className }: LoginFormProps) {
+  const router = useRouter()
+  const login = useAuthStore(state => state.login)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  const clearError = useAuthStore(state => state.clearError)
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,9 +26,6 @@ export function LoginForm({
   })
   const [showPassword, setShowPassword] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-  const [submitError, setSubmitError] = useState<string | null>(null)
-
-  const error = externalError || submitError
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -47,7 +40,7 @@ export function LoginForm({
         return newErrors
       })
     }
-    if (submitError) setSubmitError(null)
+    if (error) clearError()
   }
 
   const validateForm = () => {
@@ -73,18 +66,15 @@ export function LoginForm({
     if (!validateForm()) return
     
     try {
-      await onSubmit(formData)
-      onSuccess?.()
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur de connexion'
-      setSubmitError(errorMessage)
-      onError?.(errorMessage)
+      await login(formData)
+      router.push(redirectTo)
+    } catch {
+      // L'erreur est déjà dans le store
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className={cn('space-y-6', className)} noValidate>
-      {/* Erreur globale */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
           <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
@@ -92,7 +82,6 @@ export function LoginForm({
         </div>
       )}
 
-      {/* Email */}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
           Email
@@ -116,7 +105,6 @@ export function LoginForm({
         )}
       </div>
 
-      {/* Mot de passe */}
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
           Mot de passe
@@ -139,7 +127,6 @@ export function LoginForm({
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             tabIndex={-1}
-            aria-label="Afficher/masquer le mot de passe"
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -149,7 +136,6 @@ export function LoginForm({
         )}
       </div>
 
-      {/* Se souvenir */}
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -162,18 +148,14 @@ export function LoginForm({
           />
           <span className="text-sm text-gray-700">Se souvenir de moi</span>
         </label>
+        <Link
+          href="/forgot-password"
+          className="text-sm text-primary hover:text-primary-dark transition-colors"
+        >
+          Mot de passe oublié ?
+        </Link>
       </div>
 
-      <div className="text-center mt-4">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary hover:text-primary-dark transition-colors"
-          >
-            Mot de passe oublié ?
-          </Link>
-        </div>
-
-      {/* Bouton de soumission */}
       <button
         type="submit"
         disabled={isLoading}

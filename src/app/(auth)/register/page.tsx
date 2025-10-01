@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ConnectedRegisterForm } from '@/components/features/auth/ConnectedRegisterForm'
 import { UserPlus } from 'lucide-react'
+import { RegisterForm } from '@/components/auth/RegisterForm'
 
 export const metadata: Metadata = {
   title: 'Inscription | Sunset Commerce',
@@ -23,7 +23,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <ConnectedRegisterForm />
+      <RegisterForm />
 
       <div className="mt-6 pt-6 border-t border-gray-200 text-center">
         <p className="text-sm text-gray-600">

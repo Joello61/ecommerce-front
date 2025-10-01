@@ -1,173 +1,50 @@
-import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  useAuthStore, 
-  useUser, 
-  useIsAuthenticated, 
-  useAuthLoading, 
-  useAuthError,
-  useIsAdmin,
-} from '@/store'
-import { showToast } from '@/store'
-import type { LoginCredentials, RegisterData, ChangePasswordRequest } from '@/types'
+import { useAuthStore, useUser, useIsAuthenticated, useIsAdmin } from '@/store/authStore'
 
-interface UseAuthReturn {
-  user: ReturnType<typeof useUser>
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
-  isAdmin: boolean
-  
-  login: (credentials: LoginCredentials) => Promise<void>
-  register: (data: RegisterData) => Promise<void>
-  logout: () => Promise<void>
-  changePassword: (data: ChangePasswordRequest) => Promise<void>
-  
-  hasRole: (role: string) => boolean
-  requireAuth: () => boolean
-  redirectIfNotAuth: (redirectTo?: string) => void
-  clearError: () => void
-}
-
-export const useAuth = (): UseAuthReturn => {
+/**
+ * Hook utilitaire pour l'auth avec navigation
+ */
+export function useAuth() {
   const router = useRouter()
-  const authStore = useAuthStore()
   
-  // Sélecteurs optimisés
+  // Sélecteurs
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
-  const isLoading = useAuthLoading()
-  const error = useAuthError()
   const isAdmin = useIsAdmin()
-
-  // Actions avec gestion d'erreurs
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    try {
-      await authStore.login(credentials)
-      showToast.success('Connexion réussie', 'Bienvenue !')
-    } catch (error) {
-      // ne pas relancer l'erreur ici
-      console.error('Login error:', error)
-    }
-  }, [authStore])
-
-  const register = useCallback(async (data: RegisterData) => {
-    try {
-      await authStore.register(data)
-      showToast.success(
-        'Inscription réussie', 
-        'Vous pouvez maintenant vous connecter'
-      )
-    } catch (error) {
-      console.error('Register error:', error)
-    }
-  }, [authStore])
-
-  const logout = useCallback(async () => {
-    try {
-      await authStore.logout()
-      showToast.info('Déconnexion réussie', 'À bientôt !')
-      router.push('/')
-    } catch (error) {
-      showToast.info('Déconnexion effectuée')
-      console.log('Logout error:', error)
-      router.push('/')
-    }
-  }, [authStore, router])
-
-  const changePassword = useCallback(async (data: ChangePasswordRequest) => {
-    try {
-      await authStore.changePassword(data)
-      showToast.success('Mot de passe modifié avec succès')
-    } catch (error) {
-      console.error('Change password error:', error)
-    }
-  }, [authStore])
-
-  const hasRole = useCallback((role: string) => {
-    return user?.roles.includes(role) ?? false
-  }, [user])
-
-  const requireAuth = useCallback((): boolean => {
-    if (!isAuthenticated) {
-      showToast.warning('Connexion requise', 'Veuillez vous connecter')
-      router.push('/login')
-      return false
-    }
-    return true
-  }, [isAuthenticated, router])
-
-  const redirectIfNotAuth = useCallback((redirectTo = '/login') => {
-    if (!isAuthenticated) {
-      router.push(redirectTo)
-    }
-  }, [isAuthenticated, router])
-
-  const clearError = useCallback(() => {
-    authStore.clearError()
-  }, [authStore])
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  
+  // Actions
+  const login = useAuthStore(state => state.login)
+  const register = useAuthStore(state => state.register)
+  const logout = useAuthStore(state => state.logout)
+  const clearError = useAuthStore(state => state.clearError)
+  
+  // Utilitaires de navigation
+  const redirectToLogin = (returnUrl?: string) => {
+    const url = returnUrl ? `/login?redirect=${returnUrl}` : '/login'
+    router.push(url)
+  }
+  
+  const hasRole = (role: string) => user?.roles.includes(role) ?? false
 
   return {
+    // État
     user,
     isAuthenticated,
     isLoading,
     error,
     isAdmin,
+    
+    // Actions
     login,
     register,
     logout,
-    changePassword,
-    hasRole,
-    requireAuth,
-    redirectIfNotAuth,
     clearError,
-  }
-}
-
-export const useAuthGuard = (options: {
-  redirectTo?: string
-  requireAdmin?: boolean
-  requiredRoles?: string[]
-} = {}) => {
-  const { 
-    isAuthenticated, 
-    isAdmin, 
-    hasRole, 
-    redirectIfNotAuth 
-  } = useAuth()
-  const router = useRouter()
-
-  const { redirectTo = '/login', requireAdmin = false, requiredRoles = [] } = options
-
-  const checkAccess = useCallback(() => {
-    if (!isAuthenticated) {
-      redirectIfNotAuth(redirectTo)
-      return false
-    }
-
-    if (requireAdmin && !isAdmin) {
-      showToast.error('Accès refusé', 'Droits administrateur requis')
-      router.push('/')
-      return false
-    }
-
-    if (requiredRoles.length > 0) {
-      const hasRequiredRole = requiredRoles.some(role => hasRole(role))
-      if (!hasRequiredRole) {
-        showToast.error('Accès refusé', 'Permissions insuffisantes')
-        router.push('/')
-        return false
-      }
-    }
-
-    return true
-  }, [isAuthenticated, isAdmin, hasRole, requireAdmin, requiredRoles, redirectTo, redirectIfNotAuth, router])
-
-  return {
-    isAuthenticated,
-    isAdmin,
+    
+    // Utilitaires
     hasRole,
-    checkAccess,
+    redirectToLogin,
   }
 }
 

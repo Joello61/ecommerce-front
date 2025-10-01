@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Truck, Shield, TrendingUp, Sparkles } from 'lucide-react'
 import { useProductStore } from '@/store/productStore'
-import { ConnectedProductCard } from '@/components/features/products/ConnectedProductCard'
+import { ProductCard } from '@/components/products/ProductCard'
 
 export default function HomePage() {
   const { 
@@ -109,7 +109,7 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-center">
               {featuredProducts.map((product) => (
-                <ConnectedProductCard
+                <ProductCard
                   key={product.id}
                   product={product}
                   className="h-full"
@@ -159,7 +159,7 @@ export default function HomePage() {
                   <div className="absolute -top-3 -left-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-white font-bold text-sm shadow-lg">
                     #{index + 1}
                   </div>
-                  <ConnectedProductCard
+                  <ProductCard
                     product={product}
                     className="h-full"
                   />

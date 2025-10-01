@@ -57,10 +57,19 @@ export function formatRelativeDate(date: string | Date): string {
 /**
  * Génère une URL d'image complète
  */
-export function getImageUrl(imageName?: string): string {
+export function getImageUrl(type: 'avatar' | 'product', imageName?: string): string {
   if (!imageName) return '/images/placeholder.jpg'
-  return `${API_CONFIG.imagesUrl}/${imageName}`
+
+  switch (type) {
+    case 'avatar':
+      return `${API_CONFIG.imagesUrl}/users/${imageName}`
+    case 'product':
+      return `${API_CONFIG.imagesUrl}/products/${imageName}`
+    default:
+      return '/images/placeholder.jpg'
+  }
 }
+
 
 /**
  * Génère un slug à partir d'un texte

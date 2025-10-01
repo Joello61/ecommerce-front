@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { orderService } from '@/services/orderService'
-import { ConnectedOrderCard } from '@/components/features/orders/ConnectedOrderCard'
 import Loading from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
 import type { Order, OrderStatus } from '@/types'
+import { OrderCard } from '@/components/orders/OrderCard'
 
 export default function OrdersPage() {
   const router = useRouter()
@@ -147,7 +147,7 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
-            <ConnectedOrderCard key={order.id} order={order} />
+            <OrderCard key={order.id} order={order} />
           ))}
         </div>
       )}

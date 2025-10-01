@@ -1,17 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 
 interface ChangePasswordFormProps {
-  onSubmit: (data: { currentPassword: string; newPassword: string; newPasswordConfirm: string }) => Promise<void>
   onSuccess?: () => void
   onCancel?: () => void
   className?: string
 }
 
-export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ onSuccess, onCancel, className }: ChangePasswordFormProps) {
+  const router = useRouter()
+  const changePassword = useAuthStore(state => state.changePassword)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  const clearError = useAuthStore(state => state.clearError)
+
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -22,15 +29,13 @@ export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }:
     new: false,
     confirm: false,
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    if (error) setError(null)
+    if (error) clearError()
     if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev }
@@ -94,19 +99,18 @@ export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }:
     
     if (!validate()) return
 
-    setIsLoading(true)
-    setError(null)
-
     try {
-      await onSubmit(formData)
+      await changePassword(formData)
       setSuccess(true)
       setTimeout(() => {
-        onSuccess?.()
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/profile')
+        }
       }, 2000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du changement de mot de passe')
-    } finally {
-      setIsLoading(false)
+    } catch {
+      // L'erreur est déjà dans le store
     }
   }
 
@@ -157,7 +161,7 @@ export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }:
               type="button"
               onClick={() => togglePassword('current')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Afficher/masquer le mot de passe"
+              tabIndex={-1}
             >
               {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -188,13 +192,12 @@ export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }:
               type="button"
               onClick={() => togglePassword('new')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Afficher/masquer le mot de passe"
+              tabIndex={-1}
             >
               {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Force du mot de passe */}
           {formData.newPassword && (
             <div className="mt-2">
               <div className="flex gap-1 mb-1">
@@ -240,7 +243,7 @@ export function ChangePasswordForm({ onSubmit, onSuccess, onCancel, className }:
               type="button"
               onClick={() => togglePassword('confirm')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Afficher/masquer le mot de passe"
+              tabIndex={-1}
             >
               {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>

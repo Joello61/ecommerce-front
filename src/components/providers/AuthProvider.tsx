@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useRef } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore, useIsInitializing } from '@/store/authStore'
 import { showToast } from '@/store/uiStore'
 import type { User, LoginCredentials, RegisterData } from '@/types'
 
@@ -25,22 +25,20 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authStore = useAuthStore()
   const hasInitialized = useRef(false)
+  const isInitializing = useIsInitializing()
 
   // Vérification auth au montage
   useEffect(() => {
+    
     if (hasInitialized.current) return
     hasInitialized.current = true
 
-    const initAuth = async () => {
-      try {
-        await authStore.checkAuth()
-      } catch (error) {
-        console.debug('Auth check failed')
-        console.log(error)
-      }
-    }
+    // Petit délai pour laisser Zustand persist restaurer les données
+    const timer = setTimeout(() => {
+      authStore.checkAuth()
+    }, 50)
 
-    initAuth()
+    return () => clearTimeout(timer)
   }, [authStore])
 
   const login = async (credentials: LoginCredentials) => {
@@ -48,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await authStore.login(credentials)
       showToast.success(`Bienvenue ${authStore.user?.firstName || ''}!`, 'Connexion réussie')
     } catch (error) {
-      // Ne pas relancer l'erreur, elle est déjà dans authStore.error
       console.error('Login error:', error)
     }
   }
@@ -87,8 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authStore.checkAuth()
     } catch (error) {
-      console.debug('Vérification auth échouée')
-      console.log(error)
+      console.debug('Vérification auth échouée', error)
     }
   }
 
@@ -102,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const contextValue: AuthContextValue = {
     user: authStore.user,
     isAuthenticated: authStore.isAuthenticated,
-    isLoading: authStore.isLoading,
+    isLoading: authStore.isLoading || isInitializing,
     error: authStore.error,
     login,
     register,

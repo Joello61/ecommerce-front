@@ -1,44 +1,60 @@
 'use client'
 
-import { ReactNode, useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { ReactNode, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { User, Package, MapPin, Lock, Menu, X, LogOut } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { usePathname } from 'next/navigation'
+import { User, Package, Lock, Menu, X, LogOut } from 'lucide-react'
+import { useAuthStore, useUser } from '@/store/authStore'
 import { cn } from '@/lib/utils'
-import Loading from '@/components/ui/Loading'
+import { useState } from 'react'
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const user = useUser()
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isInitializing = useAuthStore(state => state.isInitializing)
+  const logout = useAuthStore(state => state.logout)
+  const checkAuth = useAuthStore(state => state.checkAuth)
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+  // Vérification auth au montage
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    checkAuth()
+  }, [checkAuth])
+
+  // Redirection si non auth
+  useEffect(() => {
+    if (!isInitializing && !isAuthenticated) {
       router.push('/login?redirect=' + pathname)
     }
-  }, [isAuthenticated, isLoading, router, pathname])
+  }, [isAuthenticated, isInitializing, router, pathname])
 
   const handleLogout = async () => {
     await logout()
     router.push('/')
   }
 
-  const navItems = [
-    { href: '/account/profile', label: 'Mon profil', icon: User },
-    { href: '/account/orders', label: 'Mes commandes', icon: Package },
-    { href: '/account/addresses', label: 'Mes adresses', icon: MapPin },
-    { href: '/account/change-password', label: 'Mot de passe', icon: Lock },
-  ]
-
-  if (isLoading) {
-    return <Loading size="lg" text="Chargement..." centered />
+  // Afficher rien pendant l'initialisation
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
     return null
   }
+
+  const navItems = [
+    { href: '/profile', label: 'Mon profil', icon: User },
+    { href: '/orders', label: 'Mes commandes', icon: Package },
+    { href: '/change-password', label: 'Mot de passe', icon: Lock },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,7 +86,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
             <div className="card p-6 space-y-6">
               {/* Info utilisateur */}
               <div className="pb-6 border-b border-gray-200">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-lg">
                     {user?.firstName.charAt(0)}{user?.lastName.charAt(0)}
                   </div>

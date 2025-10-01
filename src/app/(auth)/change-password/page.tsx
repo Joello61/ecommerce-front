@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
-import { ProtectedRoute } from '@/components/features/auth/ProtectedRoute'
-import { ConnectedChangePasswordForm } from '@/components/features/auth/ConnectedChangePasswordForm'
+import { ProtectedRoute } from '@/components/guards/ProtectedRoute'
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm'
 
 export const metadata: Metadata = {
   title: 'Changer le mot de passe | Sunset Commerce',
@@ -25,7 +25,7 @@ export default function ChangePasswordPage() {
           </p>
         </div>
 
-        <ConnectedChangePasswordForm />
+        <ChangePasswordForm />
       </div>
     </ProtectedRoute>
   )

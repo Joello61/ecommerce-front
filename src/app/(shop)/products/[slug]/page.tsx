@@ -6,9 +6,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useProducts } from '@/hooks/useProducts'
 import { useCart } from '@/components/providers/CartProvider'
-import { ConnectedProductGrid } from '@/components/features/products/ConnectedProductGrid'
 import { getImageUrl, formatPrice, cn } from '@/lib/utils'
 import Loading from '@/components/ui/Loading'
+import { ProductGrid } from '@/components/products/ProductGrid'
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Produits similaires
             </h2>
-            <ConnectedProductGrid
+            <ProductGrid
               products={currentProduct.similarProducts}
               columns={4}
             />

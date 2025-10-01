@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
-import { ConnectedLoginForm } from '@/components/features/auth/ConnectedLoginForm'
+import { LoginForm } from '@/components/auth/LoginForm'
 
 export const metadata: Metadata = {
   title: 'Connexion | Sunset Commerce',
@@ -23,7 +23,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <ConnectedLoginForm />
+      <LoginForm />
 
       <div className="mt-6 pt-6 border-t border-gray-200 text-center">
         <p className="text-sm text-gray-600">

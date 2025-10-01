@@ -1,29 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useUserStore } from '@/store/userStore'
-import { ConnectedProfileCard } from '@/components/features/user/ConnectedProfileCard'
-import { ConnectedProfileForm } from '@/components/features/user/ConnectedProfileForm'
-import { ConnectedAddressCard } from '@/components/features/user/ConnectedAddressCard'
-import { ConnectedAddressForm } from '@/components/features/user/ConnectedAddressForm'
+import { useUserStore, useUserAddresses } from '@/store/userStore'
+import { ProfileCard } from '@/components/users/ProfileCard'
+import { ProfileForm } from '@/components/users/ProfileForm'
+import { AddressCard } from '@/components/users/AddresseCard'
+import { AddressForm } from '@/components/users/AddresseForm'
 import Modal from '@/components/ui/Modal'
 import Loading from '@/components/ui/Loading'
 import type { Address } from '@/types'
 
 export default function ProfilePage() {
-  const { profile, addresses, isProfileLoading, isAddressesLoading, fetchProfile, fetchAddresses } = useUserStore()
+  const addresses = useUserAddresses()
+  const isProfileLoading = useUserStore(state => state.isProfileLoading)
+  const isAddressesLoading = useUserStore(state => state.isAddressesLoading)
+  const fetchAddresses = useUserStore(state => state.fetchAddresses)
   
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isAddingAddress, setIsAddingAddress] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
-  const [deletingAddressId, setDeletingAddressId] = useState<number | null>(null)
 
   useEffect(() => {
-    fetchProfile()
     fetchAddresses()
-  }, [fetchProfile, fetchAddresses])
+  }, [fetchAddresses])
 
-  if (isProfileLoading || !profile) {
+  if (isProfileLoading) {
     return <Loading size="lg" text="Chargement..." centered />
   }
 
@@ -52,12 +53,12 @@ export default function ProfilePage() {
         </div>
 
         {isEditingProfile ? (
-          <ConnectedProfileForm
+          <ProfileForm
             onSuccess={() => setIsEditingProfile(false)}
             onCancel={() => setIsEditingProfile(false)}
           />
         ) : (
-          <ConnectedProfileCard editable />
+          <ProfileCard editable />
         )}
       </section>
 
@@ -105,7 +106,7 @@ export default function ProfilePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {addresses.map((address) => (
-              <ConnectedAddressCard
+              <AddressCard
                 key={address.id}
                 address={address}
                 onEdit={setEditingAddress}
@@ -123,7 +124,7 @@ export default function ProfilePage() {
         size="lg"
         showClose
       >
-        <ConnectedAddressForm
+        <AddressForm
           onSuccess={() => setIsAddingAddress(false)}
           onCancel={() => setIsAddingAddress(false)}
         />
@@ -138,29 +139,12 @@ export default function ProfilePage() {
         showClose
       >
         {editingAddress && (
-          <ConnectedAddressForm
+          <AddressForm
             address={editingAddress}
             onSuccess={() => setEditingAddress(null)}
             onCancel={() => setEditingAddress(null)}
           />
         )}
-      </Modal>
-
-      {/* Modal Confirmer suppression */}
-      <Modal
-        isOpen={!!deletingAddressId}
-        onClose={() => setDeletingAddressId(null)}
-        title="Supprimer l'adresse"
-        variant="danger"
-        confirmText="Supprimer"
-        onConfirm={() => {
-          // La logique est gérée par ConnectedAddressCard
-          setDeletingAddressId(null)
-        }}
-      >
-        <p className="text-gray-600">
-          Êtes-vous sûr de vouloir supprimer cette adresse ? Cette action est irréversible.
-        </p>
       </Modal>
     </div>
   )

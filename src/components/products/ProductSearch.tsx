@@ -3,71 +3,47 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, X, Loader2 } from 'lucide-react'
+import { useProductStore } from '@/store/productStore'
 import { cn } from '@/lib/utils'
-import type { Product } from '@/types'
 
 interface ProductSearchProps {
-  onSearch?: (query: string) => void
-  onSearchResults?: (results: Product[]) => void
   placeholder?: string
   className?: string
   showResults?: boolean
 }
 
 export function ProductSearch({ 
-  onSearch, 
-  onSearchResults,
   placeholder = 'Rechercher des produits...', 
   className,
   showResults = true 
 }: ProductSearchProps) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  const searchProducts = useProductStore(state => state.searchProducts)
+  const searchResults = useProductStore(state => state.searchResults)
+  const isSearchLoading = useProductStore(state => state.isSearchLoading)
+  
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState<Product[]>([])
 
   // Debounced search
   useEffect(() => {
     if (query.trim().length < 2) {
-      setSearchResults([])
       return
     }
 
-    setIsSearching(true)
     const timer = setTimeout(async () => {
-      try {
-        // Simuler un appel API - À remplacer par votre vraie logique
-        const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`)
-        if (response.ok) {
-          const results = await response.json()
-          setSearchResults(results)
-          if (onSearchResults) {
-            onSearchResults(results)
-          }
-        }
-      } catch (error) {
-        console.error('Erreur de recherche:', error)
-      } finally {
-        setIsSearching(false)
-      }
+      await searchProducts(query)
     }, 500)
 
-    return () => {
-      clearTimeout(timer)
-      setIsSearching(false)
-    }
-  }, [query, onSearchResults])
+    return () => clearTimeout(timer)
+  }, [query, searchProducts])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      if (onSearch) {
-        onSearch(query)
-      } else {
-        router.push(`/products?search=${encodeURIComponent(query)}`)
-      }
+      router.push(`/products?search=${encodeURIComponent(query)}`)
       inputRef.current?.blur()
       setIsFocused(false)
     }
@@ -75,14 +51,12 @@ export function ProductSearch({
 
   const handleClear = () => {
     setQuery('')
-    setSearchResults([])
     inputRef.current?.focus()
   }
 
   const handleResultClick = (slug: string) => {
     router.push(`/products/${slug}`)
     setQuery('')
-    setSearchResults([])
     setIsFocused(false)
   }
 
@@ -102,17 +76,16 @@ export function ProductSearch({
           placeholder={placeholder}
           className="input pl-10 pr-10 w-full"
         />
-        {query && !isSearching && (
+        {query && !isSearchLoading && (
           <button
             type="button"
             onClick={handleClear}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Effacer"
           >
             <X className="w-5 h-5" />
           </button>
         )}
-        {isSearching && (
+        {isSearchLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
           </div>
@@ -151,7 +124,7 @@ export function ProductSearch({
                 </button>
               )}
             </div>
-          ) : query.trim().length >= 2 && !isSearching ? (
+          ) : query.trim().length >= 2 && !isSearchLoading ? (
             <div className="px-4 py-8 text-center text-gray-600">
               <p>Aucun résultat pour &quot;{query}&quot;</p>
             </div>

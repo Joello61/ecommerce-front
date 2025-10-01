@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
-import { ConnectedForgotPasswordForm } from '@/components/features/auth/ConnectedForgotPasswordForm'
 import { Mail } from 'lucide-react'
+import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 
 export const metadata: Metadata = {
   title: 'Mot de passe oublié | Sunset Commerce',
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="card p-8">
-      <div className="text-center">
+    <div className="card">
+      <div className="text-center p-8 pb-0">
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Mail className="w-6 h-6 text-primary"/>
         </div>
@@ -22,7 +22,9 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
 
-      <ConnectedForgotPasswordForm />
+      <ForgotPasswordForm 
+        onCancel={() => window.location.href = '/login'}
+      />
     </div>
   )
 }

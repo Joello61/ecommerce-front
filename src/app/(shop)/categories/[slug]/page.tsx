@@ -1,17 +1,14 @@
-import { Metadata } from 'next'
+'use client'
+
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useProducts } from '@/hooks/useProducts'
-import { ConnectedProductGrid } from '@/components/features/products/ConnectedProductGrid'
-import { ConnectedProductFilters } from '@/components/features/products/ConnectedProductFilters'
-import { ConnectedProductSearch } from '@/components/features/products/ConnectedProductSearch'
 import Loading from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
-
-export const metadata: Metadata = {
-  title: 'Catégorie | Sunset Commerce'
-}
+import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductSearch } from '@/components/products/ProductSearch'
+import { ProductGrid } from '@/components/products/ProductGrid'
 
 type SortOption = 'name:asc' | 'name:desc' | 'price:asc' | 'price:desc' | 'created_at:desc'
 
@@ -20,16 +17,41 @@ export default function CategoryPage() {
   const router = useRouter()
   const slug = params.slug as string
 
-  const { categories, products, isLoading, pagination, filters, setFilters, setPage } = useProducts()
+  const { 
+    categories, 
+    products, 
+    isLoading, 
+    pagination, 
+    filters, 
+    fetchProducts,        // ← Ajouter
+    fetchCategories,      // ← Ajouter
+    setFilters, 
+    clearFilters,         // ← Ajouter
+    setPage 
+  } = useProducts()
+  
   const [showFilters, setShowFilters] = useState(false)
 
   const currentCategory = categories.find((c) => c.slug === slug)
 
+  // Charger les catégories au montage
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
+
+  // Définir le filtre de catégorie quand elle est trouvée
   useEffect(() => {
     if (currentCategory) {
       setFilters({ categoryId: currentCategory.id })
     }
   }, [currentCategory, setFilters])
+
+  // Charger les produits quand les filtres changent
+  useEffect(() => {
+    if (filters.categoryId) {
+      fetchProducts()
+    }
+  }, [filters, fetchProducts])
 
   const handleSortChange = (value: SortOption) => {
     const [sortBy, sortOrder] = value.split(':') as [string, 'asc' | 'desc']
@@ -40,7 +62,7 @@ export default function CategoryPage() {
     return <Loading size="lg" text="Chargement..." centered />
   }
 
-  if (!currentCategory) {
+  if (!currentCategory && categories.length > 0) {
     return (
       <div className="container py-12 text-center">
         <h2 className="text-2xl font-semibold mb-4">Catégorie introuvable</h2>
@@ -60,7 +82,7 @@ export default function CategoryPage() {
           <span className="mx-2">/</span>
           <Link href="/categories" className="hover:text-gray-900">Catégories</Link>
           <span className="mx-2">/</span>
-          <span className="text-gray-900">{currentCategory.name}</span>
+          <span className="text-gray-900">{currentCategory?.name}</span>
         </div>
       </div>
 
@@ -77,8 +99,8 @@ export default function CategoryPage() {
             Retour
           </button>
 
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">{currentCategory.name}</h1>
-          {currentCategory.description && (
+          <h1 className="text-3xl font-semibold text-gray-900 mb-2">{currentCategory?.name}</h1>
+          {currentCategory?.description && (
             <p className="text-gray-600">{currentCategory.description}</p>
           )}
           <p className="text-sm text-gray-600 mt-2">
@@ -93,7 +115,12 @@ export default function CategoryPage() {
           {/* Filtres sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-4">
-              <ConnectedProductFilters />
+              <ProductFilters 
+                categories={categories}
+                currentFilters={filters}
+                onFilterChange={setFilters}
+                onReset={clearFilters}
+              />
             </div>
           </aside>
 
@@ -102,7 +129,7 @@ export default function CategoryPage() {
             {/* Barre d'outils */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <ConnectedProductSearch placeholder={`Rechercher dans ${currentCategory.name}...`} showResults={false} />
+                <ProductSearch placeholder={`Rechercher dans ${currentCategory?.name}...`} showResults={false} />
               </div>
 
               <div className="flex gap-2">
@@ -130,16 +157,21 @@ export default function CategoryPage() {
             {/* Filtres mobile */}
             {showFilters && (
               <div className="lg:hidden">
-                <ConnectedProductFilters />
+                <ProductFilters 
+                  categories={categories}
+                  currentFilters={filters}
+                  onFilterChange={setFilters}
+                  onReset={clearFilters}
+                />
               </div>
             )}
 
             {/* Grille produits */}
-            <ConnectedProductGrid
+            <ProductGrid
               products={products}
               loading={isLoading}
               columns={3}
-              emptyMessage={`Aucun produit dans ${currentCategory.name}`}
+              emptyMessage={`Aucun produit dans ${currentCategory?.name}`}
             />
 
             {/* Pagination */}

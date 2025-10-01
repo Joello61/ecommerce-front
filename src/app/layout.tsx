@@ -1,19 +1,20 @@
-// app/layout.tsx
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Figtree } from 'next/font/google'
 import './globals.css'
 
+import { useAuthStore } from '@/store/authStore'
 import { QueryProvider } from '@/components/providers/QueryProvider'
-import { AuthProvider } from '@/components/providers/AuthProvider'
 import { CartProvider } from '@/components/providers/CartProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
-import { ConnectedShopHeader } from '@/components/features/layouts/ConnectedShopHeader'
+import { ShopHeader } from '@/components/layout/ShopHeader'
 import { AuthHeader } from '@/components/layout/AuthHeader'
 import { Footer } from '@/components/layout/Footer'
-import { ConnectedCartDrawer } from '@/components/features/cart/ConnectedCartDrawer'
+import { CartDrawer } from '@/components/cart/CartDrawer'
+import { ToastManager } from '@/components/ToastManager'
 
 const figtree = Figtree({ 
   subsets: ['latin'],
@@ -24,6 +25,16 @@ const figtree = Figtree({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const checkAuth = useAuthStore(state => state.checkAuth)
+  
+  // Init auth au montage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkAuth()
+    }, 50)
+
+    return () => clearTimeout(timer)
+  }, [checkAuth])
   
   const isAuthPage = pathname?.includes('/login') || 
                      pathname?.includes('/register') || 
@@ -36,23 +47,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-background font-sans antialiased">
         <QueryProvider>
           <ThemeProvider defaultLanguage="fr">
-            <AuthProvider>
-              <CartProvider>
-                <div className="min-h-screen flex flex-col">
-                  {/* Header conditionnel */}
-                  {isAuthPage ? <AuthHeader /> : <ConnectedShopHeader />}
-                  
-                  {/* Contenu */}
-                  <main className="flex-1">{children}</main>
-                  
-                  {/* Footer */}
-                  <Footer />
-                  
-                  {/* CartDrawer - seulement hors auth */}
-                  {!isAuthPage && <ConnectedCartDrawer />}
-                </div>
-              </CartProvider>
-            </AuthProvider>
+            <CartProvider>
+              <div className="min-h-screen flex flex-col">
+                {isAuthPage ? <AuthHeader /> : <ShopHeader />}
+                
+                <main className="flex-1">{children}</main>
+                
+                <Footer />
+                
+                {!isAuthPage && <CartDrawer />}
+              </div>
+              <ToastManager />
+            </CartProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>

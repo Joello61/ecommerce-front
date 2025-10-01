@@ -1,29 +1,32 @@
 'use client'
 
 import { Tag, Truck, CreditCard } from 'lucide-react'
-import type { CartSummary } from '@/types'
+import { useCart } from '@/store/cartStore'
+import { formatPrice } from '@/lib/utils'
 
 interface CartSummaryProps {
-  cart: CartSummary
   compact?: boolean
   showShipping?: boolean
   className?: string
 }
 
-const formatPrice = (price: number | string) => {
-  const numPrice = typeof price === 'string' ? parseFloat(price) : price
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(numPrice)
-}
-
 export function CartSummary({ 
-  cart, 
   compact = false, 
   showShipping = false,
   className 
 }: CartSummaryProps) {
+  const cart = useCart()
+
+  if (!cart) {
+    return (
+      <div className={className}>
+        <div className="card p-6 text-center text-gray-600">
+          Chargement du panier...
+        </div>
+      </div>
+    )
+  }
+
   const subtotal = typeof cart.cart.totalPrice === 'string' 
     ? parseFloat(cart.cart.totalPrice) 
     : cart.cart.totalPrice

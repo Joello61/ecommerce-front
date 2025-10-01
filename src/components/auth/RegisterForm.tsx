@@ -1,27 +1,23 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
-import type { RegisterData } from '@/types'
 
 interface RegisterFormProps {
-  onSubmit: (data: RegisterData) => Promise<void>
-  onSuccess?: () => void
-  onError?: (error: string) => void
-  isLoading?: boolean
-  error?: string | null
+  redirectTo?: string
   className?: string
 }
 
-export function RegisterForm({ 
-  onSubmit, 
-  onSuccess, 
-  onError,
-  isLoading = false,
-  error: externalError,
-  className 
-}: RegisterFormProps) {
+export function RegisterForm({ redirectTo = '/login', className }: RegisterFormProps) {
+  const router = useRouter()
+  const register = useAuthStore(state => state.register)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+  const clearError = useAuthStore(state => state.clearError)
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,9 +30,6 @@ export function RegisterForm({
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-  const [submitError, setSubmitError] = useState<string | null>(null)
-
-  const error = externalError || submitError
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -51,7 +44,7 @@ export function RegisterForm({
         return newErrors
       })
     }
-    if (submitError) setSubmitError(null)
+    if (error) clearError()
   }
 
   const validateForm = () => {
@@ -91,12 +84,10 @@ export function RegisterForm({
     if (!validateForm()) return
     
     try {
-      await onSubmit(formData)
-      onSuccess?.()
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'inscription'
-      setSubmitError(errorMessage)
-      onError?.(errorMessage)
+      await register(formData)
+      router.push(redirectTo)
+    } catch {
+      // L'erreur est déjà dans le store
     }
   }
 
@@ -122,7 +113,6 @@ export function RegisterForm({
 
   return (
     <form onSubmit={handleSubmit} className={cn('space-y-6', className)}>
-      {/* Erreur globale */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
           <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
@@ -215,13 +205,12 @@ export function RegisterForm({
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Afficher/masquer le mot de passe"
+            tabIndex={-1}
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
         
-        {/* Force du mot de passe */}
         {formData.password && (
           <div className="mt-2">
             <div className="flex gap-1 mb-1">
@@ -267,7 +256,7 @@ export function RegisterForm({
             type="button"
             onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Afficher/masquer le mot de passe"
+            tabIndex={-1}
           >
             {showPasswordConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -314,7 +303,6 @@ export function RegisterForm({
         </label>
       </div>
 
-      {/* Bouton */}
       <button
         type="submit"
         disabled={isLoading}

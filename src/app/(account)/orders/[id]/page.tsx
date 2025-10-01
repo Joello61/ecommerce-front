@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { orderService } from '@/services/orderService'
-import { ConnectedOrderTimeline } from '@/components/features/orders/ConnectedOrderTimeline'
-import { ConnectedOrderStatus } from '@/components/features/orders/ConnectedOrderStatus'
 import { showToast } from '@/store/uiStore'
 import Modal from '@/components/ui/Modal'
 import Loading from '@/components/ui/Loading'
 import { formatPrice } from '@/lib/utils'
 import type { OrderDetails } from '@/types'
+import { OrderStatus, OrderTimeline } from '@/components/orders/OrderStatus'
+import { useOrderStore } from '@/store/orderStore'
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -28,6 +28,7 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCancelling, setIsCancelling] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const { currentTracking, isTrackingLoading, trackOrder } = useOrderStore()
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -44,7 +45,8 @@ export default function OrderDetailPage() {
     }
 
     loadOrder()
-  }, [orderNumber, router])
+    trackOrder(orderNumber)
+  }, [orderNumber, router, trackOrder])
 
   const handleCancelOrder = async () => {
     if (!order) return
@@ -104,7 +106,7 @@ export default function OrderDetailPage() {
             Commande #{order.order.orderNumber}
           </h1>
           <div className="flex flex-wrap items-center gap-3">
-            <ConnectedOrderStatus status={order.order.status} />
+            <OrderStatus status={order.order.status} />
             <span className="text-sm text-gray-600">
               Passée le {formatDate(order.order.createdAt)}
             </span>
@@ -213,9 +215,26 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-1">
           <div className="card p-6 sticky top-4">
             <h3 className="font-semibold text-gray-900 mb-6">Suivi</h3>
-            <ConnectedOrderTimeline orderNumber={order.order.orderNumber} />
+
+            {isTrackingLoading ? (
+              <div className="text-center text-gray-600">
+                Chargement du suivi...
+              </div>
+            ) : !currentTracking ? (
+              <div className="text-center text-gray-600">
+                Impossible de charger le suivi de la commande
+              </div>
+            ) : (
+              <OrderTimeline 
+                currentStatus={currentTracking.status}
+                createdAt={currentTracking.createdAt}
+                shippedAt={currentTracking.shippedAt}
+                deliveredAt={currentTracking.deliveredAt}
+              />
+            )}
           </div>
         </div>
+
       </div>
 
       {/* Modal Annulation */}

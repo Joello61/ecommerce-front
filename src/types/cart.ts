@@ -68,3 +68,11 @@ export interface CartState {
 export interface QuickAddResponse {
   cartCount: number;
 }
+
+export interface CartProfileResponse {
+  cart: {
+    id: number;
+    totalItems: number;
+    totalQuantity: number;
+  }
+}

@@ -3,35 +3,33 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Minus, Plus, Trash2 } from 'lucide-react'
+import { useCartStore } from '@/store/cartStore'
 import { CartItemDetails } from '@/types'
 import { formatPrice, getImageUrl, cn } from '@/lib/utils'
 
 interface CartItemProps {
   item: CartItemDetails
   compact?: boolean
-  onUpdateQuantity?: (itemId: number, quantity: number) => Promise<void>
-  onRemove?: (itemId: number) => Promise<void>
-  isLoading?: boolean,
   className?: string
 }
 
-export function CartItem({ item, compact = false, onUpdateQuantity, onRemove, isLoading = false, className }: CartItemProps) {
+export function CartItem({ item, compact = false, className }: CartItemProps) {
+  const updateQuantity = useCartStore(state => state.updateQuantity)
+  const removeItem = useCartStore(state => state.removeItem)
+  const isLoading = useCartStore(state => state.isLoading)
+
   const handleIncrement = async () => {
-    if (onUpdateQuantity) {
-      await onUpdateQuantity(item.id, item.quantity + 1)
-    }
+    await updateQuantity(item.id, item.quantity + 1)
   }
 
   const handleDecrement = async () => {
-    if (item.quantity > 1 && onUpdateQuantity) {
-      await onUpdateQuantity(item.id, item.quantity - 1)
+    if (item.quantity > 1) {
+      await updateQuantity(item.id, item.quantity - 1)
     }
   }
 
   const handleRemove = async () => {
-    if (onRemove) {
-      await onRemove(item.id)
-    }
+    await removeItem(item.id)
   }
 
   return (
@@ -42,7 +40,7 @@ export function CartItem({ item, compact = false, onUpdateQuantity, onRemove, is
         className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden bg-gray-100"
       >
         <Image
-          src={getImageUrl(item.product.imageName)}
+          src={getImageUrl('product', item.product.imageName)}
           alt={item.product.name}
           fill
           className="object-cover"
