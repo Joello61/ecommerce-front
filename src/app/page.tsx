@@ -2,9 +2,10 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Truck, Shield, TrendingUp, Sparkles } from 'lucide-react'
+import { ArrowRight, Truck, Shield, TrendingUp, Sparkles, GridIcon } from 'lucide-react'
 import { useProductStore } from '@/store/productStore'
 import { ProductCard } from '@/components/products/ProductCard'
+import Image from 'next/image'
 
 export default function HomePage() {
   const { 
@@ -25,40 +26,56 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gray-50 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-            backgroundSize: '32px 32px'
-          }} />
-        </div>
-        
-        <div className="container relative py-16 sm:py-24 lg:py-16">
-          <div className="max-w-3xl">
+        {/* Fond dégradé + motif */}
+        <div className="absolute inset-0 bg-primary/5" />
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }} />
+
+        <div className="container relative py-10 lg:py-10 grid lg:grid-cols-2 items-center gap-12">
+          {/* Texte */}
+          <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-full bg-primary/10 text-primary text-sm font-medium">
               <Sparkles className="w-4 h-4" />
               Nouvelle collection disponible
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-gray-900">
-              Découvrez l&apos;excellence à portée de clic
+            <h1 className="text-5xl lg:text-6xl font-bold mb-6 text-gray-900">
+              Découvrez <span className="text-primary">l&apos;excellence</span> à portée de clic
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl">
-              Une sélection soigneusement choisie de produits de qualité pour sublimer votre quotidien
+            <p className="text-lg sm:text-xl text-gray-600 mb-8">
+              Une sélection soigneusement choisie de produits de qualité pour sublimer votre quotidien.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/products" className="btn-primary">
-                Explorer la boutique
-                <ArrowRight className="w-5 h-5" />
+              <Link href="/products" className="btn-primary font-bold">
+                Explorer la boutique <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link href="/categories" className="btn-outline">
-                Voir les catégories
+              <Link href="/categories" className="btn-outline flex items-center gap-2 font-bold">
+                <GridIcon className="w-4 h-4" /> Voir les catégories
               </Link>
             </div>
+
+            <p className="mt-6 text-sm font-semibold text-gray-500">+500 clients satisfaits • Livraison rapide offerte</p>
           </div>
+
+          {/* Image illustrée */}
+          <div className="hidden lg:block relative rounded-2xl overflow-hidden">
+            <Image
+              src="/images/hero/hero-product.jpg"
+              alt="Produits phares"
+              width={1500}
+              height={1001}
+              className="w-full h-auto object-cover"
+            />
+            <div className="absolute inset-0 bg-primary/25 mix-blend-multiply" />
+          </div>
+
         </div>
       </section>
+
 
       {/* Features */}
       <section className="py-12 sm:py-16 border-b border-gray-200">

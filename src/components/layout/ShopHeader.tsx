@@ -12,9 +12,9 @@ import {
   Menu,
   X,
   LogOut,
-  Package,
   UserCircle,
   Search,
+  Home, Package, Grid, Info, Mail
 } from 'lucide-react'
 import { useAuthStore, useUser, useIsAuthenticated } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
@@ -95,14 +95,14 @@ export function ShopHeader() {
   }
 
   const navLinks = [
-    { href: '/', label: 'Accueil' },
-    { href: '/products', label: 'Produits' },
-    { href: '/categories', label: 'Catégories' },
-    { href: '/about', label: 'À propos' },
-    { href: '/contact', label: 'Contact' },
-  ]
+  { href: '/', label: 'Accueil', icon: Home },
+  { href: '/products', label: 'Produits', icon: Package },
+  { href: '/categories', label: 'Catégories', icon: Grid },
+  { href: '/about', label: 'À propos', icon: Info },
+  { href: '/contact', label: 'Contact', icon: Mail },
+]
 
-  const isProfilePage = pathname?.includes('/profile')
+  const isProfilePage = pathname?.includes('/profile') || pathname?.includes('/orders') || pathname === '/'
 
   return (
     <header
@@ -117,28 +117,33 @@ export function ShopHeader() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-2 rounded-lg bg-secondary group-hover:opacity-90 transition-opacity">
+            <div className="p-2 rounded-lg bg-gradient-to-tr from-primary to-secondary group-hover:opacity-90 transition-opacity">
               <ShoppingBag className="h-6 w-6 text-white" />
             </div>
-            <span className="hidden sm:block font-bold text-xl">ShopName</span>
+
+            <span className="hidden sm:block font-bold text-xl">C&apos;est KDO Store</span>
           </Link>
 
           {/* Navigation desktop */}
           <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                  pathname === link.href
-                    ? 'text-primary bg-primary/10'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const Icon = link.icon
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-lg text-[16px] font-medium transition-colors',
+                    pathname === link.href
+                      ? 'text-primary bg-primary/10'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  )}
+                >
+                  {Icon && <Icon className="w-4 h-4" />}
+                  {link.label}
+                </Link>
+              )
+            })}
           </nav>
 
           {/* Actions */}
@@ -309,21 +314,26 @@ export function ShopHeader() {
             className="lg:hidden overflow-hidden border-t border-gray-200 bg-white"
           >
             <nav className="container py-4 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    'block px-4 py-3 rounded-lg transition-colors',
-                    pathname === link.href
-                      ? 'text-primary bg-primary/10 font-medium'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const Icon = link.icon
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-3 rounded-lg transition-colors',
+                      pathname === link.href
+                        ? 'text-primary bg-primary/10 font-medium'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    )}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {link.label}
+                  </Link>
+                )
+              })}
+
             </nav>
           </motion.div>
         )}
